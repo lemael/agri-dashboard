@@ -1,0 +1,417 @@
+{
+  "conversations": {
+    "test@prod.com__alain.tchoupo@facilitar.cm": {
+      "participants": [
+        "test@prod.com",
+        "alain.tchoupo@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1743120000001",
+          "from": "alain.tchoupo@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "Bonjour ! Êtes-vous disponible pour une commande de Plantain cette semaine ?",
+          "type": "text",
+          "sentAt": "2026-04-09T08:10:00.000",
+          "read": true
+        },
+        {
+          "id": "1743120600002",
+          "from": "test@prod.com",
+          "to": "alain.tchoupo@facilitar.cm",
+          "content": "Bonjour ! Oui, j'ai 150 régimes disponibles. Quel quantité vous intéresse ?",
+          "type": "text",
+          "sentAt": "2026-04-09T08:20:00.000",
+          "read": true
+        },
+        {
+          "id": "1743121200003",
+          "from": "alain.tchoupo@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "Parfait, je prends les 150 régimes. Pouvez-vous livrer à Douala ?",
+          "type": "text",
+          "sentAt": "2026-04-09T08:30:00.000",
+          "read": true
+        },
+        {
+          "id": "1743121800004",
+          "from": "test@prod.com",
+          "to": "alain.tchoupo@facilitar.cm",
+          "content": "Oui, livraison possible jeudi matin. 45 000 FCFA le tout.",
+          "type": "text",
+          "sentAt": "2026-04-09T09:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1743122400005",
+          "from": "alain.tchoupo@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "📦 Photo du stock",
+          "type": "photo",
+          "sentAt": "2026-04-09T09:15:00.000",
+          "read": true
+        },
+        {
+          "id": "1743123000006",
+          "from": "alain.tchoupo@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "Marché conclu ! À jeudi.",
+          "type": "text",
+          "sentAt": "2026-04-09T09:20:00.000",
+          "read": false
+        }
+      ]
+    },
+    "patricia.essomba@facilitar.cm__test@prod.com": {
+      "participants": [
+        "test@prod.com",
+        "patricia.essomba@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1742860800010",
+          "from": "patricia.essomba@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "Bonjour, je suis intéressée par vos Arachides Valencia. C'est encore disponible ?",
+          "type": "text",
+          "sentAt": "2026-04-10T10:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1742861400011",
+          "from": "test@prod.com",
+          "to": "patricia.essomba@facilitar.cm",
+          "content": "Bonjour Patricia ! Oui, 120 kg disponibles à 22 000 FCFA.",
+          "type": "text",
+          "sentAt": "2026-04-10T10:15:00.000",
+          "read": true
+        },
+        {
+          "id": "1742862000012",
+          "from": "patricia.essomba@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "🎵 Note vocale",
+          "type": "audio",
+          "sentAt": "2026-04-10T10:30:00.000",
+          "read": false
+        }
+      ]
+    },
+    "jacques.nkolo@facilitar.cm__test@prod.com": {
+      "participants": [
+        "test@prod.com",
+        "jacques.nkolo@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1743379200020",
+          "from": "test@prod.com",
+          "to": "jacques.nkolo@facilitar.cm",
+          "content": "Bonjour Jacques, nous avons du Gombo frais disponible cette semaine.",
+          "type": "text",
+          "sentAt": "2026-04-18T07:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1743379800021",
+          "from": "jacques.nkolo@facilitar.cm",
+          "to": "test@prod.com",
+          "content": "Merci pour l'info ! Quelle est la quantité ?",
+          "type": "text",
+          "sentAt": "2026-04-18T07:30:00.000",
+          "read": true
+        },
+        {
+          "id": "1743380400022",
+          "from": "test@prod.com",
+          "to": "jacques.nkolo@facilitar.cm",
+          "content": "60 kg à 9 500 FCFA. Je vous envoie une photo.",
+          "type": "text",
+          "sentAt": "2026-04-18T08:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1743381000023",
+          "from": "test@prod.com",
+          "to": "jacques.nkolo@facilitar.cm",
+          "content": "📷 Photo du produit",
+          "type": "photo",
+          "sentAt": "2026-04-18T08:05:00.000",
+          "read": false
+        }
+      ]
+    },
+    "test@grossiste.com__bertrand.nguema@facilitar.cm": {
+      "participants": [
+        "test@grossiste.com",
+        "bertrand.nguema@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1743552000031",
+          "from": "bertrand.nguema@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "Bonjour ! J'ai une nouvelle récolte de Plantain Gros Michel disponible. 150 régimes à 45 000 FCFA.",
+          "type": "text",
+          "sentAt": "2026-04-13T07:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1743552600032",
+          "from": "test@grossiste.com",
+          "to": "bertrand.nguema@facilitar.cm",
+          "content": "Parfait Bertrand ! Je prends tout. Livraison possible jeudi ?",
+          "type": "text",
+          "sentAt": "2026-04-13T07:20:00.000",
+          "read": true
+        },
+        {
+          "id": "1743553200033",
+          "from": "bertrand.nguema@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "📷 Photo du lot",
+          "type": "photo",
+          "sentAt": "2026-04-13T07:35:00.000",
+          "read": true
+        },
+        {
+          "id": "1743553800034",
+          "from": "bertrand.nguema@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "Oui, jeudi c'est parfait. À bientôt !",
+          "type": "text",
+          "sentAt": "2026-04-13T07:40:00.000",
+          "read": false
+        }
+      ]
+    },
+    "test@grossiste.com__solange.mbarga@facilitar.cm": {
+      "participants": [
+        "test@grossiste.com",
+        "solange.mbarga@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1744070400041",
+          "from": "test@grossiste.com",
+          "to": "solange.mbarga@facilitar.cm",
+          "content": "Bonjour Solange, avez-vous encore du Safou en stock ?",
+          "type": "text",
+          "sentAt": "2026-04-08T09:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1744071000042",
+          "from": "solange.mbarga@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "Oui, 200 kg disponibles à 35 000 FCFA. Livraison depuis Douala.",
+          "type": "text",
+          "sentAt": "2026-04-08T09:30:00.000",
+          "read": true
+        },
+        {
+          "id": "1744071600043",
+          "from": "solange.mbarga@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "🎬 Vidéo du stock",
+          "type": "video",
+          "sentAt": "2026-04-08T09:45:00.000",
+          "read": false
+        }
+      ]
+    },
+    "test@grossiste.com__jeannette.ngobilong@facilitar.cm": {
+      "participants": [
+        "test@grossiste.com",
+        "jeannette.ngobilong@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1744848000051",
+          "from": "jeannette.ngobilong@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "Bonjour, je suis intéressée par vos Avocats Hass. C'est encore disponible ?",
+          "type": "text",
+          "sentAt": "2026-04-17T08:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1744848600052",
+          "from": "test@grossiste.com",
+          "to": "jeannette.ngobilong@facilitar.cm",
+          "content": "Bonjour Jeannette ! Oui, 250 unités à 42 000 FCFA. Qualité premium.",
+          "type": "text",
+          "sentAt": "2026-04-17T08:15:00.000",
+          "read": true
+        },
+        {
+          "id": "1744849200053",
+          "from": "jeannette.ngobilong@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "Je prends 50 unités. Je peux passer au dépôt demain ?",
+          "type": "text",
+          "sentAt": "2026-04-17T08:30:00.000",
+          "read": true
+        },
+        {
+          "id": "1744849800054",
+          "from": "test@grossiste.com",
+          "to": "jeannette.ngobilong@facilitar.cm",
+          "content": "Parfait, je vous attends. Voici les infos du dépôt.",
+          "type": "text",
+          "sentAt": "2026-04-17T08:45:00.000",
+          "read": true
+        },
+        {
+          "id": "1745020800055",
+          "from": "jeannette.ngobilong@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "🎵 Message vocal",
+          "type": "audio",
+          "sentAt": "2026-04-19T10:00:00.000",
+          "read": false
+        }
+      ]
+    },
+    "nadege.eyenga@facilitar.cm__test@grossiste.com": {
+      "participants": [
+        "test@grossiste.com",
+        "nadege.eyenga@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1745193600061",
+          "from": "test@grossiste.com",
+          "to": "nadege.eyenga@facilitar.cm",
+          "content": "Bonjour Nadège, nous avons du Plantain frais arrivé ce matin. Intéressée ?",
+          "type": "text",
+          "sentAt": "2026-04-21T07:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1745194200062",
+          "from": "nadege.eyenga@facilitar.cm",
+          "to": "test@grossiste.com",
+          "content": "Oui ! Quelle quantité minimum pour livraison Bastos ?",
+          "type": "text",
+          "sentAt": "2026-04-21T07:30:00.000",
+          "read": false
+        }
+      ]
+    },
+    "test@vendor.com__test@grossiste.com": {
+      "participants": [
+        "test@vendor.com",
+        "test@grossiste.com"
+      ],
+      "messages": [
+        {
+          "id": "1745280000071",
+          "from": "test@vendor.com",
+          "to": "test@grossiste.com",
+          "content": "Bonjour ! Je suis intéressé(e) par vos avocats Hass mis en vente. Toujours disponibles ?",
+          "type": "text",
+          "sentAt": "2026-04-22T08:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1745280600072",
+          "from": "test@grossiste.com",
+          "to": "test@vendor.com",
+          "content": "Bonjour ! Oui, 250 unités disponibles à 42 000 FCFA. Livraison possible sous 48h.",
+          "type": "text",
+          "sentAt": "2026-04-22T08:15:00.000",
+          "read": true
+        },
+        {
+          "id": "1745281200073",
+          "from": "test@grossiste.com",
+          "to": "test@vendor.com",
+          "content": "📷 Photo du stock",
+          "type": "photo",
+          "sentAt": "2026-04-22T08:20:00.000",
+          "read": true
+        },
+        {
+          "id": "1745281800074",
+          "from": "test@vendor.com",
+          "to": "test@grossiste.com",
+          "content": "Parfait ! Je prends 50 unités. Comment procéder pour la commande ?",
+          "type": "text",
+          "sentAt": "2026-04-22T08:35:00.000",
+          "read": true
+        },
+        {
+          "id": "1745282400075",
+          "from": "test@grossiste.com",
+          "to": "test@vendor.com",
+          "content": "Passez la commande via l'application, je confirme sous 24h.",
+          "type": "text",
+          "sentAt": "2026-04-22T08:45:00.000",
+          "read": false
+        }
+      ]
+    },
+    "patricia.essomba@facilitar.cm__test@vendor.com": {
+      "participants": [
+        "test@vendor.com",
+        "patricia.essomba@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1745193600081",
+          "from": "patricia.essomba@facilitar.cm",
+          "to": "test@vendor.com",
+          "content": "Bonjour ! Nous avons des Arachides Valencia et du Niébé disponibles. Intéressé(e) ?",
+          "type": "text",
+          "sentAt": "2026-04-20T09:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1745194200082",
+          "from": "test@vendor.com",
+          "to": "patricia.essomba@facilitar.cm",
+          "content": "Bonjour Patricia ! Oui, envoyez-moi les prix et quantités disponibles.",
+          "type": "text",
+          "sentAt": "2026-04-20T09:30:00.000",
+          "read": true
+        },
+        {
+          "id": "1745194800083",
+          "from": "patricia.essomba@facilitar.cm",
+          "to": "test@vendor.com",
+          "content": "🎚️ Message vocal",
+          "type": "audio",
+          "sentAt": "2026-04-20T09:45:00.000",
+          "read": false
+        }
+      ]
+    },
+    "alain.tchoupo@facilitar.cm__test@vendor.com": {
+      "participants": [
+        "test@vendor.com",
+        "alain.tchoupo@facilitar.cm"
+      ],
+      "messages": [
+        {
+          "id": "1745366400091",
+          "from": "test@vendor.com",
+          "to": "alain.tchoupo@facilitar.cm",
+          "content": "Bonjour Alain, vos Ndolé sont encore disponibles ?",
+          "type": "text",
+          "sentAt": "2026-04-23T07:00:00.000",
+          "read": true
+        },
+        {
+          "id": "1745367000092",
+          "from": "alain.tchoupo@facilitar.cm",
+          "to": "test@vendor.com",
+          "content": "Bonjour ! Il reste 60 kg à 16 000 FCFA. Stock limité !",
+          "type": "text",
+          "sentAt": "2026-04-23T07:20:00.000",
+          "read": true
+        }
+      ]
+    }
+  }
+}

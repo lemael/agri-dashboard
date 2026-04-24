@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { api } from '../api';
 
+const IS_MOCK = !import.meta.env.VITE_API_URL;
+
 export default function Import() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const handleReloadFlutter = async () => {
+    setLoading(true);
+    setStatus(null);
+    localStorage.removeItem('fac_data_loaded');
+    try {
+      const result = await api.importFromFiles();
+      localStorage.setItem('fac_data_loaded', '1');
+      setStatus({ success: true, ...result });
+    } catch (e) {
+      setStatus({ success: false, error: e.message });
+    }
+    setLoading(false);
+  };
 
   const handleImport = async () => {
     setLoading(true);
@@ -88,20 +104,42 @@ export default function Import() {
 
         {/* Option 2 : import automatique */}
         <div style={{ flex: 1, minWidth: 300, background: '#fff', borderRadius: 10, padding: 24, boxShadow: '0 1px 4px rgba(0,0,0,.08)' }}>
-          <h3 style={{ marginBottom: 8, fontSize: 15 }}>⚡ Import automatique</h3>
-          <p style={{ color: '#636e72', fontSize: 13, marginBottom: 16 }}>
-            Si vous servez le dossier <code>data/</code> de l'app Flutter via un serveur statique accessible, cliquez ci-dessous pour importer directement.
-          </p>
-          <button
-            onClick={handleImport}
-            disabled={loading}
-            style={{
-              padding: '10px 20px', background: '#1e3a2f', color: '#fff',
-              border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
-            }}
-          >
-            {loading ? 'Import en cours…' : 'Importer depuis /data/'}
-          </button>
+          {IS_MOCK ? (
+            <>
+              <h3 style={{ marginBottom: 8, fontSize: 15 }}>🔄 Recharger les données Flutter</h3>
+              <p style={{ color: '#636e72', fontSize: 13, marginBottom: 16 }}>
+                Recharge automatiquement les données depuis les fichiers JSON du projet <code>flutter_application_1</code> intégrés dans l'application.
+                Les données existantes dans le navigateur seront remplacées.
+              </p>
+              <button
+                onClick={handleReloadFlutter}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px', background: '#4caf7d', color: '#fff',
+                  border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
+                }}
+              >
+                {loading ? 'Rechargement…' : '🌿 Recharger depuis Flutter'}
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 style={{ marginBottom: 8, fontSize: 15 }}>⚡ Import automatique</h3>
+              <p style={{ color: '#636e72', fontSize: 13, marginBottom: 16 }}>
+                Si vous servez le dossier <code>data/</code> de l'app Flutter via un serveur statique accessible, cliquez ci-dessous pour importer directement.
+              </p>
+              <button
+                onClick={handleImport}
+                disabled={loading}
+                style={{
+                  padding: '10px 20px', background: '#1e3a2f', color: '#fff',
+                  border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
+                }}
+              >
+                {loading ? 'Import en cours…' : 'Importer depuis /data/'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 

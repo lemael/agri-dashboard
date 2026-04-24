@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
+
+const IS_MOCK = !import.meta.env.VITE_API_URL;
 
 const ROLE_LABELS = {
   ceo:         'CEO',
@@ -18,6 +20,18 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [dataReady, setDataReady] = useState(() => !!localStorage.getItem('fac_data_loaded'));
+
+  useEffect(() => {
+    if (!IS_MOCK || dataReady) return;
+    const id = setInterval(() => {
+      if (localStorage.getItem('fac_data_loaded')) {
+        setDataReady(true);
+        clearInterval(id);
+      }
+    }, 300);
+    return () => clearInterval(id);
+  }, [dataReady]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,6 +62,13 @@ export default function Login() {
           <div style={{ fontSize: 40 }}>🌱</div>
           <div style={{ fontSize: 24, fontWeight: 700, color: '#1e3a2f', marginTop: 8 }}>Facilitar</div>
           <div style={{ fontSize: 13, color: '#636e72', marginTop: 4 }}>Tableau de bord — Connexion</div>
+          {IS_MOCK && (
+            <div style={{ marginTop: 10, fontSize: 12, padding: '5px 12px', borderRadius: 20,
+              background: dataReady ? '#d1e7dd' : '#fff3cd',
+              color: dataReady ? '#0a5336' : '#856404' }}>
+              {dataReady ? '✅ Données chargées' : '⏳ Chargement des données…'}
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit}>
