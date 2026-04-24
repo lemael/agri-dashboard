@@ -1,0 +1,231 @@
+{
+  "producteurs": [
+    {
+      "id": "prod_001",
+      "nom": "Nguema",
+      "prenom": "Bertrand",
+      "email": "bertrand.nguema@facilitar.cm",
+      "telephone": "+237 677 234 501",
+      "nomEntreprise": "Ferme Verte Nguema",
+      "nomExploitation": "Exploitation Maraîchère du Mfoundi",
+      "localisation": "Yaoundé, Centre",
+      "status": "actif",
+      "createdAt": "2026-01-15T08:30:00.000"
+    },
+    {
+      "id": "prod_002",
+      "nom": "Mbarga",
+      "prenom": "Solange",
+      "email": "solange.mbarga@facilitar.cm",
+      "telephone": "+237 699 118 743",
+      "nomEntreprise": "Agri-Mbarga SARL",
+      "nomExploitation": "Plantation du Littoral",
+      "localisation": "Douala, Littoral",
+      "status": "actif",
+      "createdAt": "2026-01-22T10:15:00.000"
+    },
+    {
+      "id": "prod_003",
+      "nom": "Fomekong",
+      "prenom": "Hervé",
+      "email": "herve.fomekong@facilitar.cm",
+      "telephone": "+237 655 402 889",
+      "nomEntreprise": "Bio-Fomekong",
+      "nomExploitation": "Ferme des Hauts Plateaux",
+      "localisation": "Bafoussam, Ouest",
+      "status": "actif",
+      "createdAt": "2026-02-03T09:00:00.000"
+    },
+    {
+      "id": "prod_004",
+      "nom": "Abena",
+      "prenom": "Marie-Claire",
+      "email": "marie.abena@facilitar.cm",
+      "telephone": "+237 690 567 214",
+      "nomEntreprise": "Terroir Abena",
+      "nomExploitation": "Plantation Abena & Fils",
+      "localisation": "Obala, Centre",
+      "status": "actif",
+      "createdAt": "2026-02-18T14:45:00.000"
+    }
+  ],
+  "grossistes": [
+    {
+      "id": "gros_001",
+      "nom": "Tchoupo",
+      "prenom": "Alain",
+      "email": "alain.tchoupo@facilitar.cm",
+      "telephone": "+237 677 890 123",
+      "nomEntreprise": "Grossiste Tchoupo & Associés",
+      "localisation": "Douala, Akwa",
+      "status": "actif",
+      "createdAt": "2026-01-10T07:00:00.000"
+    },
+    {
+      "id": "gros_002",
+      "nom": "Essomba",
+      "prenom": "Patricia",
+      "email": "patricia.essomba@facilitar.cm",
+      "telephone": "+237 699 345 678",
+      "nomEntreprise": "Distribution Essomba SARL",
+      "localisation": "Yaoundé, Mvan",
+      "status": "actif",
+      "createdAt": "2026-01-28T11:30:00.000"
+    },
+    {
+      "id": "gros_003",
+      "nom": "Nkolo",
+      "prenom": "Jacques",
+      "email": "jacques.nkolo@facilitar.cm",
+      "telephone": "+237 656 712 034",
+      "nomEntreprise": "Nkolo Commerce Gros",
+      "localisation": "Garoua, Nord",
+      "status": "actif",
+      "createdAt": "2026-02-05T08:20:00.000"
+    },
+    {
+      "id": "gros_004",
+      "nom": "Kengne",
+      "prenom": "Christiane",
+      "email": "christiane.kengne@facilitar.cm",
+      "telephone": "+237 695 201 456",
+      "nomEntreprise": "Kengne Agro-Distribution",
+      "localisation": "Bafoussam, Ouest",
+      "status": "actif",
+      "createdAt": "2026-02-14T16:00:00.000"
+    },
+    {
+      "id": "gros_005",
+      "nom": "Manga",
+      "prenom": "Théodore",
+      "email": "theodore.manga@facilitar.cm",
+      "telephone": "+237 670 983 217",
+      "nomEntreprise": "Manga Distribution Générale",
+      "localisation": "Kribi, Sud",
+      "status": "actif",
+      "createdAt": "2026-03-01T09:45:00.000"
+    }
+  ],
+  "revendeurs": [
+    {
+      "id": "rev_001",
+      "nom": "Ngo Bilong",
+      "prenom": "Jeannette",
+      "email": "jeannette.ngobilong@facilitar.cm",
+      "telephone": "+237 677 001 234",
+      "nomCommerce": "Marché Frais Jeannette",
+      "nomEntreprise": "NGB Commerce",
+      "localisation": "Yaoundé, Mokolo",
+      "status": "actif",
+      "createdAt": "2026-01-12T07:30:00.000"
+    },
+    {
+      "id": "rev_002",
+      "nom": "Bello",
+      "prenom": "Ibrahim",
+      "email": "ibrahim.bello@facilitar.cm",
+      "telephone": "+237 699 456 789",
+      "nomCommerce": "Épicerie Bello",
+      "nomEntreprise": "Bello & Frères",
+      "localisation": "Ngaoundéré, Adamaoua",
+      "status": "actif",
+      "createdAt": "2026-01-19T10:00:00.000"
+    },
+    {
+      "id": "rev_003",
+      "nom": "Owona",
+      "prenom": "Sylvie",
+      "email": "sylvie.owona@facilitar.cm",
+      "telephone": "+237 655 678 901",
+      "nomCommerce": "Super Frais Owona",
+      "nomEntreprise": "Owona Market",
+      "localisation": "Douala, Bonaberi",
+      "status": "actif",
+      "createdAt": "2026-01-25T08:15:00.000"
+    },
+    {
+      "id": "rev_004",
+      "nom": "Kamdem",
+      "prenom": "Roger",
+      "email": "roger.kamdem@facilitar.cm",
+      "telephone": "+237 690 234 567",
+      "nomCommerce": "Kamdem Bio Shop",
+      "nomEntreprise": "Kamdem SARL",
+      "localisation": "Dschang, Ouest",
+      "status": "actif",
+      "createdAt": "2026-02-01T09:30:00.000"
+    },
+    {
+      "id": "rev_005",
+      "nom": "Ateba",
+      "prenom": "Florence",
+      "email": "florence.ateba@facilitar.cm",
+      "telephone": "+237 677 345 012",
+      "nomCommerce": "Marché Ateba",
+      "nomEntreprise": "Ateba Commerce",
+      "localisation": "Ebolowa, Sud",
+      "status": "actif",
+      "createdAt": "2026-02-08T11:00:00.000"
+    },
+    {
+      "id": "rev_006",
+      "nom": "Samba",
+      "prenom": "Oumarou",
+      "email": "oumarou.samba@facilitar.cm",
+      "telephone": "+237 699 567 890",
+      "nomCommerce": "Provisions Samba",
+      "nomEntreprise": "Samba Trading",
+      "localisation": "Maroua, Extrême-Nord",
+      "status": "actif",
+      "createdAt": "2026-02-15T07:45:00.000"
+    },
+    {
+      "id": "rev_007",
+      "nom": "Eyenga",
+      "prenom": "Nadège",
+      "email": "nadege.eyenga@facilitar.cm",
+      "telephone": "+237 656 890 123",
+      "nomCommerce": "Boutique Bio Nadège",
+      "nomEntreprise": "Eyenga Fresh",
+      "localisation": "Yaoundé, Bastos",
+      "status": "actif",
+      "createdAt": "2026-02-22T13:20:00.000"
+    },
+    {
+      "id": "rev_008",
+      "nom": "Fouda",
+      "prenom": "Emmanuel",
+      "email": "emmanuel.fouda@facilitar.cm",
+      "telephone": "+237 695 123 456",
+      "nomCommerce": "Fouda Alimentation",
+      "nomEntreprise": "Fouda & Co",
+      "localisation": "Bertoua, Est",
+      "status": "actif",
+      "createdAt": "2026-03-05T08:00:00.000"
+    },
+    {
+      "id": "rev_009",
+      "nom": "Ndjana",
+      "prenom": "Célestine",
+      "email": "celestine.ndjana@facilitar.cm",
+      "telephone": "+237 670 234 789",
+      "nomCommerce": "Ndjana Marché Central",
+      "nomEntreprise": "Ndjana Distribution",
+      "localisation": "Kumba, Sud-Ouest",
+      "status": "actif",
+      "createdAt": "2026-03-12T09:15:00.000"
+    },
+    {
+      "id": "rev_010",
+      "nom": "Tabi",
+      "prenom": "Blaise",
+      "email": "blaise.tabi@facilitar.cm",
+      "telephone": "+237 677 678 345",
+      "nomCommerce": "Tabi Fresh Market",
+      "nomEntreprise": "Tabi Entreprises",
+      "localisation": "Buea, Sud-Ouest",
+      "status": "actif",
+      "createdAt": "2026-03-20T10:30:00.000"
+    }
+  ]
+}

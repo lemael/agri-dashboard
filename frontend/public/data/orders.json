@@ -1,0 +1,382 @@
+{
+  "commandes": [
+    {
+      "id": "1743379200001",
+      "grossisteEmail": "test@grossiste.com",
+      "commandeAt": "2026-04-09T08:15:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod001_001",
+        "type": "Plantain",
+        "variete": "Gros Michel",
+        "quantite": "150 régimes",
+        "prix": 45000.0,
+        "nomEntreprise": "Ferme Verte Nguema",
+        "producerEmail": "bertrand.nguema@facilitar.cm",
+        "lieu": "Yaoundé, Mfoundi",
+        "etat": "frais",
+        "dateRecolte": "2026-04-08T00:00:00.000"
+      }
+    },
+    {
+      "id": "1743552000002",
+      "grossisteEmail": "test@grossiste.com",
+      "commandeAt": "2026-04-11T10:30:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod002_001",
+        "type": "Safou (prune africaine)",
+        "variete": "Dacryodes edulis",
+        "quantite": "200kg",
+        "prix": 35000.0,
+        "nomEntreprise": "Agri-Mbarga SARL",
+        "producerEmail": "solange.mbarga@facilitar.cm",
+        "lieu": "Douala, Littoral",
+        "etat": "frais",
+        "dateRecolte": "2026-04-10T00:00:00.000"
+      }
+    },
+    {
+      "id": "1743897600003",
+      "grossisteEmail": "test@grossiste.com",
+      "commandeAt": "2026-04-15T09:00:00.000",
+      "status": "en attente",
+      "produit": {
+        "id": "prod003_001",
+        "type": "Maïs",
+        "variete": "CMS 8704",
+        "quantite": "600kg",
+        "prix": 54000.0,
+        "nomEntreprise": "Bio-Fomekong",
+        "producerEmail": "herve.fomekong@facilitar.cm",
+        "lieu": "Bafoussam, Ouest",
+        "etat": "sec",
+        "dateRecolte": "2026-01-20T00:00:00.000"
+      }
+    },
+    {
+      "id": "1742860800004",
+      "grossisteEmail": "alain.tchoupo@facilitar.cm",
+      "commandeAt": "2026-03-25T07:45:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod002_003",
+        "type": "Macabo",
+        "variete": "Blanc",
+        "quantite": "250kg",
+        "prix": 28000.0,
+        "nomEntreprise": "Agri-Mbarga SARL",
+        "producerEmail": "solange.mbarga@facilitar.cm",
+        "lieu": "Douala, Bonaberi",
+        "etat": "frais",
+        "dateRecolte": "2026-04-02T00:00:00.000"
+      }
+    },
+    {
+      "id": "1743120000005",
+      "grossisteEmail": "alain.tchoupo@facilitar.cm",
+      "commandeAt": "2026-03-28T11:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod001_002",
+        "type": "Ndolé (feuilles amères)",
+        "variete": "Locale",
+        "quantite": "80kg",
+        "prix": 12000.0,
+        "nomEntreprise": "Ferme Verte Nguema",
+        "producerEmail": "bertrand.nguema@facilitar.cm",
+        "lieu": "Yaoundé, Mfoundi",
+        "etat": "frais",
+        "dateRecolte": "2026-04-15T00:00:00.000"
+      }
+    },
+    {
+      "id": "1745107200006",
+      "grossisteEmail": "alain.tchoupo@facilitar.cm",
+      "commandeAt": "2026-04-20T08:20:00.000",
+      "status": "en attente",
+      "produit": {
+        "id": "prod004_001",
+        "type": "Épinards africains (Folong)",
+        "variete": "Locale",
+        "quantite": "90kg",
+        "prix": 13500.0,
+        "nomEntreprise": "Terroir Abena",
+        "producerEmail": "marie.abena@facilitar.cm",
+        "lieu": "Obala, Centre",
+        "etat": "frais",
+        "dateRecolte": "2026-04-19T00:00:00.000"
+      }
+    },
+    {
+      "id": "1741564800007",
+      "grossisteEmail": "alain.tchoupo@facilitar.cm",
+      "commandeAt": "2026-03-10T06:30:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod002_002",
+        "type": "Huile de palme rouge",
+        "variete": "Première pression",
+        "quantite": "500 litres",
+        "prix": 125000.0,
+        "nomEntreprise": "Agri-Mbarga SARL",
+        "producerEmail": "solange.mbarga@facilitar.cm",
+        "lieu": "Douala, Littoral",
+        "etat": "sec",
+        "dateRecolte": "2026-03-05T00:00:00.000"
+      }
+    },
+    {
+      "id": "1741132800008",
+      "grossisteEmail": "patricia.essomba@facilitar.cm",
+      "commandeAt": "2026-03-05T14:10:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod001_005",
+        "type": "Arachides (cacahuètes)",
+        "variete": "Valencia",
+        "quantite": "120kg",
+        "prix": 22000.0,
+        "nomEntreprise": "Ferme Verte Nguema",
+        "producerEmail": "bertrand.nguema@facilitar.cm",
+        "lieu": "Obala, Centre",
+        "etat": "sec",
+        "dateRecolte": "2026-02-28T00:00:00.000"
+      }
+    },
+    {
+      "id": "1738713600009",
+      "grossisteEmail": "patricia.essomba@facilitar.cm",
+      "commandeAt": "2026-02-05T09:45:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod004_002",
+        "type": "Niébé (haricot blanc local)",
+        "variete": "IT90K-277-2",
+        "quantite": "200kg",
+        "prix": 30000.0,
+        "nomEntreprise": "Terroir Abena",
+        "producerEmail": "marie.abena@facilitar.cm",
+        "lieu": "Obala, Centre",
+        "etat": "sec",
+        "dateRecolte": "2026-01-30T00:00:00.000"
+      }
+    },
+    {
+      "id": "1744070400010",
+      "grossisteEmail": "patricia.essomba@facilitar.cm",
+      "commandeAt": "2026-04-07T07:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod003_002",
+        "type": "Avocat",
+        "variete": "Hass",
+        "quantite": "350 unités",
+        "prix": 32000.0,
+        "nomEntreprise": "Bio-Fomekong",
+        "producerEmail": "herve.fomekong@facilitar.cm",
+        "lieu": "Bafoussam, Mifi",
+        "etat": "maturation",
+        "dateRecolte": "2026-04-05T00:00:00.000"
+      }
+    },
+    {
+      "id": "1745193600011",
+      "grossisteEmail": "patricia.essomba@facilitar.cm",
+      "commandeAt": "2026-04-20T15:30:00.000",
+      "status": "en attente",
+      "produit": {
+        "id": "prod001_003",
+        "type": "Gombo",
+        "variete": "Clemson Spineless",
+        "quantite": "60kg",
+        "prix": 9500.0,
+        "nomEntreprise": "Ferme Verte Nguema",
+        "producerEmail": "bertrand.nguema@facilitar.cm",
+        "lieu": "Yaoundé, Centre",
+        "etat": "frais",
+        "dateRecolte": "2026-04-18T00:00:00.000"
+      }
+    },
+    {
+      "id": "1739145600012",
+      "grossisteEmail": "jacques.nkolo@facilitar.cm",
+      "commandeAt": "2026-02-10T08:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod003_001",
+        "type": "Maïs",
+        "variete": "CMS 8704",
+        "quantite": "600kg",
+        "prix": 54000.0,
+        "nomEntreprise": "Bio-Fomekong",
+        "producerEmail": "herve.fomekong@facilitar.cm",
+        "lieu": "Bafoussam, Ouest",
+        "etat": "sec",
+        "dateRecolte": "2026-01-20T00:00:00.000"
+      }
+    },
+    {
+      "id": "1732406400013",
+      "grossisteEmail": "jacques.nkolo@facilitar.cm",
+      "commandeAt": "2025-11-24T10:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod004_005",
+        "type": "Soja",
+        "variete": "TGx 1835-10E",
+        "quantite": "160kg",
+        "prix": 48000.0,
+        "nomEntreprise": "Terroir Abena",
+        "producerEmail": "marie.abena@facilitar.cm",
+        "lieu": "Mbalmayo, Centre",
+        "etat": "sec",
+        "dateRecolte": "2025-11-25T00:00:00.000"
+      }
+    },
+    {
+      "id": "1735948800014",
+      "grossisteEmail": "jacques.nkolo@facilitar.cm",
+      "commandeAt": "2026-01-04T09:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod003_005",
+        "type": "Graines d'egusi (courge)",
+        "variete": "Citrullus lanatus",
+        "quantite": "75kg",
+        "prix": 37500.0,
+        "nomEntreprise": "Bio-Fomekong",
+        "producerEmail": "herve.fomekong@facilitar.cm",
+        "lieu": "Bafoussam, Ouest",
+        "etat": "sec",
+        "dateRecolte": "2025-12-20T00:00:00.000"
+      }
+    },
+    {
+      "id": "1741996800015",
+      "grossisteEmail": "christiane.kengne@facilitar.cm",
+      "commandeAt": "2026-03-15T10:30:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod003_003",
+        "type": "Farine de manioc (Gari)",
+        "variete": "Gari jaune fermenté",
+        "quantite": "400kg",
+        "prix": 60000.0,
+        "nomEntreprise": "Bio-Fomekong",
+        "producerEmail": "herve.fomekong@facilitar.cm",
+        "lieu": "Bafoussam, Ouest",
+        "etat": "sec",
+        "dateRecolte": "2026-03-10T00:00:00.000"
+      }
+    },
+    {
+      "id": "1745280000016",
+      "grossisteEmail": "christiane.kengne@facilitar.cm",
+      "commandeAt": "2026-04-21T08:00:00.000",
+      "status": "en attente",
+      "produit": {
+        "id": "prod002_004",
+        "type": "Ananas",
+        "variete": "Cayenne lisse",
+        "quantite": "400 unités",
+        "prix": 48000.0,
+        "nomEntreprise": "Agri-Mbarga SARL",
+        "producerEmail": "solange.mbarga@facilitar.cm",
+        "lieu": "Edéa, Littoral",
+        "etat": "maturation",
+        "dateRecolte": "2026-04-20T00:00:00.000"
+      }
+    },
+    {
+      "id": "1744416000017",
+      "grossisteEmail": "christiane.kengne@facilitar.cm",
+      "commandeAt": "2026-04-13T07:30:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod004_003",
+        "type": "Papaye",
+        "variete": "Solo Sunrise",
+        "quantite": "180 unités",
+        "prix": 27000.0,
+        "nomEntreprise": "Terroir Abena",
+        "producerEmail": "marie.abena@facilitar.cm",
+        "lieu": "Obala, Centre",
+        "etat": "maturation",
+        "dateRecolte": "2026-04-12T00:00:00.000"
+      }
+    },
+    {
+      "id": "1738540800018",
+      "grossisteEmail": "christiane.kengne@facilitar.cm",
+      "commandeAt": "2026-02-03T11:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod002_005",
+        "type": "Poivre de Penja (blanc)",
+        "variete": "AOG Penja",
+        "quantite": "30kg",
+        "prix": 90000.0,
+        "nomEntreprise": "Agri-Mbarga SARL",
+        "producerEmail": "solange.mbarga@facilitar.cm",
+        "lieu": "Penja, Littoral",
+        "etat": "sec",
+        "dateRecolte": "2026-01-15T00:00:00.000"
+      }
+    },
+    {
+      "id": "1744588800019",
+      "grossisteEmail": "theodore.manga@facilitar.cm",
+      "commandeAt": "2026-04-14T06:00:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod002_001",
+        "type": "Safou (prune africaine)",
+        "variete": "Dacryodes edulis",
+        "quantite": "200kg",
+        "prix": 35000.0,
+        "nomEntreprise": "Agri-Mbarga SARL",
+        "producerEmail": "solange.mbarga@facilitar.cm",
+        "lieu": "Douala, Littoral",
+        "etat": "frais",
+        "dateRecolte": "2026-04-10T00:00:00.000"
+      }
+    },
+    {
+      "id": "1744502400020",
+      "grossisteEmail": "theodore.manga@facilitar.cm",
+      "commandeAt": "2026-04-13T09:15:00.000",
+      "status": "confirmée",
+      "produit": {
+        "id": "prod001_001",
+        "type": "Plantain",
+        "variete": "Gros Michel",
+        "quantite": "150 régimes",
+        "prix": 45000.0,
+        "nomEntreprise": "Ferme Verte Nguema",
+        "producerEmail": "bertrand.nguema@facilitar.cm",
+        "lieu": "Yaoundé, Mfoundi",
+        "etat": "frais",
+        "dateRecolte": "2026-04-08T00:00:00.000"
+      }
+    },
+    {
+      "id": "1745366400021",
+      "grossisteEmail": "theodore.manga@facilitar.cm",
+      "commandeAt": "2026-04-22T06:45:00.000",
+      "status": "en attente",
+      "produit": {
+        "id": "prod004_004",
+        "type": "Feuilles de patate douce",
+        "variete": "Orange fleshed",
+        "quantite": "45kg",
+        "prix": 6750.0,
+        "nomEntreprise": "Terroir Abena",
+        "producerEmail": "marie.abena@facilitar.cm",
+        "lieu": "Obala, Centre",
+        "etat": "frais",
+        "dateRecolte": "2026-04-21T00:00:00.000"
+      }
+    }
+  ]
+}

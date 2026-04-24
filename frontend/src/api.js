@@ -1,3 +1,7 @@
+import { mockApi } from './mockApi';
+
+const USE_MOCK = !import.meta.env.VITE_API_URL;
+
 const BASE = (import.meta.env.VITE_API_URL || '') + '/api';
 
 async function get(path) {
@@ -29,7 +33,7 @@ async function post(path, body) {
   return res.json();
 }
 
-export const api = {
+export const api = USE_MOCK ? mockApi : {
   stats:          () => get('/stats'),
   orders:         (q = '') => get(`/orders${q}`),
   updateOrderStatus:  (id, status) => patch(`/orders/${id}/status`, { status }),
@@ -43,6 +47,7 @@ export const api = {
   producteurs:    (q = '') => get(`/producteurs${q}`),
   deleteProducteur: (id) => del(`/producteurs/${id}`),
   importData:     (data) => post('/import', data),
+  importFromFiles: null,
 
   // Auth
   login: (email, password) => post('/auth/login', { email, password }),

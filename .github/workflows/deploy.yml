@@ -36,8 +36,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE: /agri-dashboard/
-          # Remplacez par l'URL de votre backend déployé (Railway, Render, Fly.io…)
-          # VITE_API_URL: https://votre-backend.up.railway.app
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
       - name: Upload artifact

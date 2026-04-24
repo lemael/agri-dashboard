@@ -9,18 +9,24 @@ export default function Import() {
     setLoading(true);
     setStatus(null);
     try {
-      // Charge les fichiers JSON depuis le dossier data/ de l'app Flutter
-      // (à adapter selon votre méthode : copier-coller les JSON ou fetch depuis un endpoint Flutter)
-      const [orders, revendeurOrders, ventes, products, profiles, users] = await Promise.all([
-        fetch('/data/orders.json').then(r => r.json()).catch(() => null),
-        fetch('/data/revendeur_orders.json').then(r => r.json()).catch(() => null),
-        fetch('/data/ventes.json').then(r => r.json()).catch(() => null),
-        fetch('/data/products.json').then(r => r.json()).catch(() => null),
-        fetch('/data/profiles.json').then(r => r.json()).catch(() => null),
-        fetch('/data/users.json').then(r => r.json()).catch(() => null),
-      ]);
-
-      const result = await api.importData({ orders, revendeurOrders, ventes, products, profiles, users });
+      let result;
+      if (api.importFromFiles) {
+        // Mode mock : utilise le mockApi directement (base URL correcte)
+        result = await api.importFromFiles();
+      } else {
+        // Mode backend réel
+        const base = import.meta.env.BASE_URL || '/';
+        const d = (f) => `${base}data/${f}`;
+        const [orders, revendeurOrders, ventes, products, profiles, users] = await Promise.all([
+          fetch(d('orders.json')).then(r => r.json()).catch(() => null),
+          fetch(d('revendeur_orders.json')).then(r => r.json()).catch(() => null),
+          fetch(d('ventes.json')).then(r => r.json()).catch(() => null),
+          fetch(d('products.json')).then(r => r.json()).catch(() => null),
+          fetch(d('profiles.json')).then(r => r.json()).catch(() => null),
+          fetch(d('users.json')).then(r => r.json()).catch(() => null),
+        ]);
+        result = await api.importData({ orders, revendeurOrders, ventes, products, profiles, users });
+      }
       setStatus({ success: true, ...result });
     } catch (e) {
       setStatus({ success: false, error: e.message });
