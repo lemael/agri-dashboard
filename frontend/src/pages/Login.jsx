@@ -128,6 +128,12 @@ export default function Login() {
           </button>
         </form>
 
+        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#636e72' }}>
+          Pas encore de compte ?{' '}
+          <a href="#/register" style={{ color: '#4caf7d', fontWeight: 700, textDecoration: 'none' }}>
+            Créer un compte
+          </a>
+        </div>
 
       </div>
     </div>

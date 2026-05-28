@@ -9,9 +9,61 @@ const genId = () => 'usr_' + Date.now().toString(36) + '_' + Math.random().toStr
 router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'SELECT id, email, nom, prenom, role, cc_groupe, created_at FROM dashboard_users ORDER BY created_at DESC'
+      'SELECT id, email, nom, prenom, role, cc_groupe, telephone, status, created_at FROM dashboard_users ORDER BY created_at DESC'
     );
     res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET pending call_center accounts
+router.get('/pending', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, email, nom, prenom, telephone, created_at
+       FROM dashboard_users WHERE role = 'call_center' AND status = 'pending'
+       ORDER BY created_at ASC`
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET pending count (for badge)
+router.get('/pending-count', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT COUNT(*) as count FROM dashboard_users WHERE role = 'call_center' AND status = 'pending'`
+    );
+    res.json({ count: parseInt(rows[0].count) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /:id/validate — approve
+router.patch('/:id/validate', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE dashboard_users SET status = 'active' WHERE id = $1`,
+      [req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /:id/reject — reject
+router.patch('/:id/reject', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE dashboard_users SET status = 'rejected' WHERE id = $1`,
+      [req.params.id]
+    );
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

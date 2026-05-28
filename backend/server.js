@@ -18,6 +18,7 @@ app.use('/api/import', require('./routes/importData'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/depenses', require('./routes/depenses'));
 app.use('/api/dashboard-users', require('./routes/dashboardUsers'));
+app.use('/api/call-center', require('./routes/callCenter'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

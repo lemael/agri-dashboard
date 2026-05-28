@@ -1,16 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 import StatsCard from '../components/StatsCard';
 import DataTable, { StatusBadge } from '../components/DataTable';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
+  const [pending, setPending] = useState([]);
+  const [showPending, setShowPending] = useState(false);
+  const [validating, setValidating] = useState(null);
 
   useEffect(() => {
     api.stats().then(setStats).catch(() => setError('Impossible de contacter le serveur.'));
   }, []);
+
+  useEffect(() => {
+    if (user?.role === 'ceo') {
+      api.pendingUsers().then(setPending).catch(() => {});
+    }
+  }, [user]);
+
+  async function handleValidate(id) {
+    setValidating(id);
+    await api.validateUser(id);
+    setPending(p => p.filter(u => u.id !== id));
+    setValidating(null);
+  }
+
+  async function handleReject(id) {
+    setValidating(id);
+    await api.rejectUser(id);
+    setPending(p => p.filter(u => u.id !== id));
+    setValidating(null);
+  }
 
   if (error) return (
     <div style={{ padding: 20, background: '#f8d7da', borderRadius: 8, color: '#721c24' }}>
@@ -36,6 +61,86 @@ export default function Dashboard() {
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24 }}>Tableau de bord</h1>
+
+      {/* ── Notification CEO : comptes en attente ── */}
+      {user?.role === 'ceo' && pending.length > 0 && (
+        <div style={{
+          marginBottom: 24, padding: '14px 18px', borderRadius: 12,
+          background: '#fff8e1', border: '1.5px solid #ffc107',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 22 }}>🔔</span>
+            <div>
+              <div style={{ fontWeight: 700, color: '#856404', fontSize: 15 }}>
+                {pending.length} compte{pending.length > 1 ? 's' : ''} Call Center en attente de validation
+              </div>
+              <div style={{ fontSize: 12, color: '#9e7c0a', marginTop: 2 }}>
+                Des agents ont créé un compte et attendent votre approbation.
+              </div>
+            </div>
+          </div>
+          <button onClick={() => setShowPending(v => !v)} style={{
+            padding: '7px 16px', borderRadius: 8, background: '#ffc107', border: 'none',
+            fontWeight: 700, fontSize: 13, cursor: 'pointer', color: '#5d4037',
+          }}>
+            {showPending ? 'Masquer ▲' : 'Voir les demandes ▼'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Panel validation ── */}
+      {user?.role === 'ceo' && showPending && (
+        <div style={{
+          marginBottom: 24, background: '#fff', borderRadius: 12, padding: 20,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0',
+        }}>
+          <h3 style={{ margin: '0 0 16px', fontSize: 15, color: '#1e3a2f' }}>
+            📋 Demandes de compte Call Center
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {pending.map(u => (
+              <div key={u.id} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 16px', background: '#f8f9fa', borderRadius: 10,
+                border: '1px solid #e9ecef', flexWrap: 'wrap', gap: 8,
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#1e3a2f' }}>
+                    {u.prenom} {u.nom}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#636e72', marginTop: 2 }}>
+                    ✉️ {u.email}{u.telephone ? ` · 📞 ${u.telephone}` : ''}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                    Inscrit le {new Date(u.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => handleValidate(u.id)}
+                    disabled={validating === u.id}
+                    style={{
+                      padding: '7px 16px', borderRadius: 8, background: '#4caf7d', border: 'none',
+                      color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                    }}>
+                    {validating === u.id ? '…' : '✓ Valider'}
+                  </button>
+                  <button
+                    onClick={() => handleReject(u.id)}
+                    disabled={validating === u.id}
+                    style={{
+                      padding: '7px 16px', borderRadius: 8, background: '#ffebee', border: 'none',
+                      color: '#c0392b', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                    }}>
+                    {validating === u.id ? '…' : '✕ Refuser'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* KPI */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>

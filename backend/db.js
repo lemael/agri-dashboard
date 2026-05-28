@@ -104,7 +104,37 @@ async function initDB() {
       created_by TEXT,
       created_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS cc_profiles (
+      email TEXT PRIMARY KEY,
+      prenom TEXT,
+      telephone TEXT,
+      ville TEXT,
+      secteur_principal TEXT,
+      secteur_secondaire TEXT,
+      orientation TEXT,
+      created_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS cc_clients (
+      id TEXT PRIMARY KEY,
+      cc_email TEXT NOT NULL,
+      nom TEXT NOT NULL,
+      telephone TEXT,
+      adresse TEXT,
+      geolocation TEXT,
+      produits TEXT,
+      date_ravitaillement TEXT,
+      prochaine_date TEXT,
+      notes TEXT,
+      created_at TEXT,
+      updated_at TEXT
+    );
   `);
+
+  // Add status column if not exists (migration)
+  await pool.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active'`);
+  await pool.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS telephone TEXT`);
 
   // Seed default dashboard users
   const seedUsers = [
@@ -117,8 +147,8 @@ async function initDB() {
   ];
   for (const u of seedUsers) {
     await pool.query(
-      `INSERT INTO dashboard_users (id, email, nom, prenom, role, cc_groupe, password_hash, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO dashboard_users (id, email, nom, prenom, role, cc_groupe, password_hash, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', $8)
        ON CONFLICT (email) DO NOTHING`,
       [u.id, u.email, u.nom, u.prenom, u.role, u.cc_groupe, hashPwd(u.password), new Date().toISOString()]
     );

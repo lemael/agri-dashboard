@@ -12,6 +12,9 @@ import Producteurs from './pages/Producteurs';
 import Import from './pages/Import';
 import Comptabilite from './pages/Comptabilite';
 import GestionUtilisateurs from './pages/GestionUtilisateurs';
+import CallCenterSetup from './pages/CallCenterSetup';
+import CallCenterDashboard from './pages/CallCenterDashboard';
+import Register from './pages/Register';
 
 // Pages accessibles par rôle (ceo voit tout)
 const ROLE_PATHS = {
@@ -46,10 +49,13 @@ export default function App() {
     <AuthProvider>
       <HashRouter>
         <Routes>
-          <Route path="/login" element={<LoginRedirect />} />
+          <Route path="/login"    element={<LoginRedirect />} />
+          <Route path="/register" element={<RegisterRedirect />} />
+          <Route path="/cc-setup" element={<SetupGuard />} />
           <Route path="/" element={<LayoutGuard />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard"           element={<Guard path="/dashboard"><Dashboard /></Guard>} />
+            <Route path="cc-dashboard"        element={<CCGuard><CallCenterDashboard /></CCGuard>} />
             <Route path="commandes-grossiste" element={<Guard path="/commandes-grossiste"><CommandesGrossiste /></Guard>} />
             <Route path="commandes-revendeur" element={<Guard path="/commandes-revendeur"><CommandesRevendeur /></Guard>} />
             <Route path="ventes"              element={<Guard path="/ventes"><Ventes /></Guard>} />
@@ -66,13 +72,38 @@ export default function App() {
   );
 }
 
+function RegisterRedirect() {
+  const { user } = useAuth();
+  return user ? <Navigate to="/dashboard" replace /> : <Register />;
+}
+
 function LoginRedirect() {
   const { user } = useAuth();
-  return user ? <Navigate to="/dashboard" replace /> : <Login />;
+  if (!user) return <Login />;
+  if (user.role === 'call_center' && !user.profile_complete) return <Navigate to="/cc-setup" replace />;
+  if (user.role === 'call_center') return <Navigate to="/cc-dashboard" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
+
+function SetupGuard() {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'call_center') return <Navigate to="/dashboard" replace />;
+  if (user.profile_complete) return <Navigate to="/cc-dashboard" replace />;
+  return <CallCenterSetup />;
 }
 
 function LayoutGuard() {
   const { user } = useAuth();
-  return user ? <Layout /> : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === 'call_center' && !user.profile_complete) return <Navigate to="/cc-setup" replace />;
+  return <Layout />;
+}
+
+function CCGuard({ children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== 'call_center' && user.role !== 'ceo') return <Navigate to="/dashboard" replace />;
+  return children;
 }
 

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api';
 
 const ALL_LINKS = [
   { to: '/dashboard',           label: '🏠 Dashboard',          roles: ['ceo','comptable','call_center','marketing','rh'], cc_groupe: null },
+  { to: '/cc-dashboard',        label: '📱 Mon Espace CC',       roles: ['call_center'], cc_groupe: null },
   { to: '/producteurs',         label: '👨‍🌾 Producteurs',        roles: ['ceo','marketing','call_center'], cc_groupe: 1 },
   { to: '/produits',            label: '🌿 Produits',            roles: ['ceo','marketing','call_center'], cc_groupe: 1 },
   { to: '/commandes-grossiste', label: '📦 Cmds Grossiste',      roles: ['ceo','call_center'], cc_groupe: 1 },
@@ -38,6 +40,17 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const links = getLinks(user);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.role === 'ceo') {
+      api.pendingUsers().then(list => setPendingCount(list.length)).catch(() => {});
+      const interval = setInterval(() => {
+        api.pendingUsers().then(list => setPendingCount(list.length)).catch(() => {});
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -75,7 +88,7 @@ export default function Layout() {
               key={l.to}
               to={l.to}
               style={({ isActive }) => ({
-                display: 'block',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '11px 20px',
                 color: isActive ? '#4caf7d' : '#c5d9ce',
                 background: isActive ? 'rgba(76,175,125,0.12)' : 'transparent',
@@ -86,6 +99,15 @@ export default function Layout() {
               })}
             >
               {l.label}
+              {l.to === '/dashboard' && pendingCount > 0 && (
+                <span style={{
+                  minWidth: 18, height: 18, borderRadius: 9, background: '#ffc107',
+                  color: '#5d4037', fontSize: 11, fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px',
+                }}>
+                  {pendingCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
