@@ -34,9 +34,11 @@ export default function CallCenterSetup() {
 
   function validateStep() {
     if (step === 0) {
-      if (!form.prenom.trim())    return 'Le prénom est requis.';
+      if (!form.prenom.trim()) return 'Le prénom est requis.';
       if (!form.telephone.trim()) return 'Le téléphone est requis.';
-      if (!form.ville.trim())     return 'La ville est requise.';
+      if (!/^\+2376\d{8}$/.test(form.telephone))
+        return 'Format téléphone invalide : +2376 suivi de 8 chiffres (ex: +237612345678)';
+      if (!form.ville.trim()) return 'La ville est requise.';
     }
     if (step === 1) {
       if (!form.secteur_principal)  return 'Choisissez un secteur principal.';
@@ -136,8 +138,8 @@ export default function CallCenterSetup() {
           {step === 0 && (
             <div style={{ display: 'grid', gap: 14 }}>
               <Field label="Prénom *" value={form.prenom} onChange={v => set('prenom', v)} placeholder="Votre prénom" />
-              <Field label="Téléphone *" value={form.telephone} onChange={v => set('telephone', v)} placeholder="+237 6XX XXX XXX" type="tel" />
-              <Field label="Ville *" value={form.ville} onChange={v => set('ville', v)} placeholder="Ex: Yaoundé, Douala..." />
+              <PhoneField value={form.telephone} onChange={v => set('telephone', v)} />
+              <VilleField value={form.ville} onChange={v => set('ville', v)} />
               <GeoField value={form.geolocation} onChange={v => set('geolocation', v)} />
             </div>
           )}
@@ -259,8 +261,71 @@ function Field({ label, value, onChange, placeholder, type = 'text', autoComplet
   );
 }
 
-function GeoField({ value, onChange }) {
-  const [loading, setLoading] = React.useState(false);
+const VILLES_CM = ['Yaoundé', 'Douala', 'Bafoussam', 'Mbalmayo', 'Kribi', 'Limbé', 'Ebolowa'];
+
+function VilleField({ value, onChange }) {
+  return (
+    <div>
+      <label style={labelStyle}>Ville *</label>
+      <input
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        list="villes-cm"
+        placeholder="Ex: Yaoundé, Douala..."
+        autoComplete="off"
+        style={{
+          width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 14, marginTop: 4,
+          border: '1px solid #e0e0e0', outline: 'none', boxSizing: 'border-box', background: '#fafafa',
+        }}
+      />
+      <datalist id="villes-cm">
+        {VILLES_CM.map(v => <option key={v} value={v} />)}
+      </datalist>
+    </div>
+  );
+}
+
+function PhoneField({ value, onChange }) {
+  const PREFIX = '+2376';
+
+  function handleChange(e) {
+    let raw = e.target.value;
+    // Ensure prefix is always present
+    if (!raw.startsWith(PREFIX)) {
+      raw = PREFIX + raw.replace(/^\+?237?6?/, '');
+    }
+    // Remove anything after prefix that's not a digit
+    const digits = raw.slice(PREFIX.length).replace(/\D/g, '').slice(0, 8);
+    onChange(PREFIX + digits);
+  }
+
+  const isValid = /^\+2376\d{8}$/.test(value);
+  const showHint = value.length > PREFIX.length && !isValid;
+
+  return (
+    <div>
+      <label style={labelStyle}>Téléphone *</label>
+      <input
+        type="tel"
+        value={value || PREFIX}
+        onChange={handleChange}
+        autoComplete="off"
+        style={{
+          width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 14, marginTop: 4,
+          border: `1px solid ${showHint ? '#e74c3c' : isValid && value.length > PREFIX.length ? '#4caf7d' : '#e0e0e0'}`,
+          outline: 'none', boxSizing: 'border-box', background: '#fafafa',
+        }}
+      />
+      {showHint
+        ? <div style={{ fontSize: 11, color: '#e74c3c', marginTop: 3 }}>Format: +2376 suivi de 8 chiffres</div>
+        : <div style={{ fontSize: 11, color: '#aaa', marginTop: 3 }}>Format: +2376XXXXXXXX (8 chiffres)</div>
+      }
+    </div>
+  );
+}
+
+function GeoField({ value, onChange }) {  const [loading, setLoading] = React.useState(false);
   const [geoErr, setGeoErr] = React.useState('');
 
   function detect() {
