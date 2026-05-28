@@ -8,9 +8,18 @@ const genId = () => 'usr_' + Date.now().toString(36) + '_' + Math.random().toStr
 
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT id, email, nom, prenom, role, cc_groupe, telephone, status, created_at FROM dashboard_users ORDER BY created_at DESC'
-    );
+    const { rows } = await pool.query(`
+      SELECT u.id, u.username, u.email, u.nom, u.prenom, u.role, u.cc_groupe,
+             u.telephone, u.status, u.created_at,
+             cp.ville, cp.secteur_principal,
+             COUNT(DISTINCT cc.id)::int AS nb_clients
+      FROM dashboard_users u
+      LEFT JOIN cc_profiles cp ON cp.email = u.email
+      LEFT JOIN cc_clients  cc ON cc.cc_email = u.email
+      GROUP BY u.id, u.username, u.email, u.nom, u.prenom, u.role, u.cc_groupe,
+               u.telephone, u.status, u.created_at, cp.ville, cp.secteur_principal
+      ORDER BY u.created_at DESC
+    `);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -71,17 +80,21 @@ router.patch('/:id/reject', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { email, nom, prenom, role, cc_groupe, password } = req.body;
-    if (!email || !password || !role)
-      return res.status(400).json({ error: 'email, password et role sont requis' });
+    const { username, email, nom, prenom, role, cc_groupe, password } = req.body;
+    if (!username || !password || !role)
+      return res.status(400).json({ error: 'pseudonyme, password et role sont requis' });
     const id = genId();
+    // email: use provided or generate from username
+    const resolvedEmail = email?.trim()
+      ? email.toLowerCase().trim()
+      : `${username.toLowerCase().trim()}@facilitar.local`;
     await pool.query(
-      'INSERT INTO dashboard_users (id, email, nom, prenom, role, cc_groupe, password_hash, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
-      [id, email.toLowerCase().trim(), nom || null, prenom || null, role, cc_groupe || null, hash(password), new Date().toISOString()]
+      'INSERT INTO dashboard_users (id, email, username, nom, prenom, role, cc_groupe, password_hash, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,\'active\',$9)',
+      [id, resolvedEmail, username.toLowerCase().trim(), nom || null, prenom || null, role, cc_groupe || null, hash(password), new Date().toISOString()]
     );
     res.json({ ok: true, id });
   } catch (err) {
-    if (err.code === '23505') return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+    if (err.code === '23505') return res.status(400).json({ error: 'Ce pseudonyme ou email est déjà utilisé' });
     res.status(500).json({ error: err.message });
   }
 });

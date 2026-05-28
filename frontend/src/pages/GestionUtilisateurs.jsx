@@ -17,7 +17,7 @@ const ROLE_COLORS = {
   rh:          { bg: '#4caf7d22', color: '#2e7d32' },
 };
 
-const empty = { email: '', nom: '', prenom: '', role: '', cc_groupe: '', password: '' };
+const empty = { username: '', email: '', nom: '', prenom: '', role: '', cc_groupe: '', password: '' };
 
 export default function GestionUtilisateurs() {
   const [users, setUsers] = useState(null);
@@ -72,8 +72,12 @@ export default function GestionUtilisateurs() {
           <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Créer un compte</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
             <div>
-              <label style={labelStyle}>Email *</label>
-              <input type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} placeholder="nom@facilitar.cm" />
+              <label style={labelStyle}>Pseudonyme *</label>
+              <input type="text" required value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} style={inputStyle} placeholder="pseudonyme" autoComplete="off" />
+            </div>
+            <div>
+              <label style={labelStyle}>Email (optionnel)</label>
+              <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} placeholder="nom@facilitar.cm" />
             </div>
             <div>
               <label style={labelStyle}>Prénom</label>
@@ -123,7 +127,7 @@ export default function GestionUtilisateurs() {
           <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,.08)' }}>
             <thead>
               <tr style={{ background: '#f8f9fa' }}>
-                {['Nom', 'Email', 'Rôle', 'Groupe CC', 'Créé le', 'Action'].map(h => (
+                {['Nom', 'Pseudonyme', 'Rôle', 'Téléphone', 'Ville', 'Secteur commercial', 'Nb clients', 'Statut', 'Action'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#495057', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -131,26 +135,46 @@ export default function GestionUtilisateurs() {
             <tbody>
               {users.map(u => {
                 const rc = ROLE_COLORS[u.role] || { bg: '#e9ecef', color: '#495057' };
+                const statusColor = u.status === 'active'
+                  ? { bg: '#d1e7dd', color: '#0a5336' }
+                  : u.status === 'pending'
+                  ? { bg: '#fff8e1', color: '#856404' }
+                  : { bg: '#f8d7da', color: '#721c24' };
                 return (
                   <tr key={u.id} style={{ borderBottom: '1px solid #f1f3f5' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#f8f9fa'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
-                    <td style={tdStyle}><strong>{u.prenom} {u.nom}</strong></td>
-                    <td style={tdStyle}>{u.email}</td>
+                    <td style={tdStyle}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{u.prenom} {u.nom}</div>
+                      <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
+                        <span style={{ padding: '1px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600, background: rc.bg, color: rc.color }}>
+                          {ROLES.find(r => r.value === u.role)?.label || u.role}
+                          {u.role === 'call_center' && u.cc_groupe ? ` G${u.cc_groupe}` : ''}
+                        </span>
+                      </div>
+                    </td>
+                    <td style={tdStyle}><code style={{ fontSize: 13, background: '#f1f3f5', padding: '2px 6px', borderRadius: 4 }}>{u.username || '—'}</code></td>
                     <td style={tdStyle}>
                       <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: rc.bg, color: rc.color }}>
                         {ROLES.find(r => r.value === u.role)?.label || u.role}
                       </span>
                     </td>
-                    <td style={tdStyle}>
-                      {u.role === 'call_center' && u.cc_groupe
-                        ? `Groupe ${u.cc_groupe} — ${u.cc_groupe == 1 ? 'Prod→Gros' : 'Gros→Rev'}`
-                        : '—'}
+                    <td style={tdStyle}>{u.telephone || '—'}</td>
+                    <td style={tdStyle}>{u.ville || '—'}</td>
+                    <td style={tdStyle}>{u.secteur_principal || '—'}</td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      {u.role === 'call_center'
+                        ? <span style={{ fontWeight: 700, color: u.nb_clients > 0 ? '#1e3a2f' : '#aaa' }}>{u.nb_clients ?? 0}</span>
+                        : <span style={{ color: '#ccc' }}>—</span>}
                     </td>
-                    <td style={tdStyle}>{u.created_at?.slice(0, 10)}</td>
                     <td style={tdStyle}>
-                      <button onClick={() => handleDelete(u.id, u.email)} style={{ padding: '3px 8px', borderRadius: 6, background: '#f8d7da', border: 'none', color: '#721c24', fontSize: 12 }}>
+                      <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: statusColor.bg, color: statusColor.color }}>
+                        {u.status === 'active' ? 'Actif' : u.status === 'pending' ? 'En attente' : 'Refusé'}
+                      </span>
+                    </td>
+                    <td style={tdStyle}>
+                      <button onClick={() => handleDelete(u.id, u.username || u.email)} style={{ padding: '3px 8px', borderRadius: 6, background: '#f8d7da', border: 'none', color: '#721c24', fontSize: 12 }}>
                         Supprimer
                       </button>
                     </td>
