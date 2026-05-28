@@ -138,6 +138,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS username TEXT`);
   await pool.query(`UPDATE dashboard_users SET username = SPLIT_PART(email, '@', 1) WHERE username IS NULL`);
   await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboard_users_username ON dashboard_users(username) WHERE username IS NOT NULL`);
+  await pool.query(`ALTER TABLE cc_profiles ADD COLUMN IF NOT EXISTS geolocation TEXT`);
 
   // Seed default dashboard users
   const seedUsers = [

@@ -23,23 +23,24 @@ router.get('/profile/:email', async (req, res) => {
 // POST /api/call-center/profile — create or update
 router.post('/profile', async (req, res) => {
   try {
-    const { email, prenom, telephone, ville, secteur_principal, secteur_secondaire, orientation, password } = req.body;
+    const { email, prenom, telephone, ville, geolocation, secteur_principal, secteur_secondaire, orientation, password } = req.body;
     if (!email || !secteur_principal || !orientation)
       return res.status(400).json({ error: 'email, secteur_principal et orientation sont requis' });
 
     const now = new Date().toISOString();
     await pool.query(
-      `INSERT INTO cc_profiles (email, prenom, telephone, ville, secteur_principal, secteur_secondaire, orientation, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      `INSERT INTO cc_profiles (email, prenom, telephone, ville, geolocation, secteur_principal, secteur_secondaire, orientation, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        ON CONFLICT (email) DO UPDATE SET
          prenom = EXCLUDED.prenom,
          telephone = EXCLUDED.telephone,
          ville = EXCLUDED.ville,
+         geolocation = EXCLUDED.geolocation,
          secteur_principal = EXCLUDED.secteur_principal,
          secteur_secondaire = EXCLUDED.secteur_secondaire,
          orientation = EXCLUDED.orientation`,
       [email.toLowerCase(), prenom || null, telephone || null, ville || null,
-       secteur_principal, secteur_secondaire || null, orientation, now]
+       geolocation || null, secteur_principal, secteur_secondaire || null, orientation, now]
     );
 
     // Update prenom in dashboard_users if provided

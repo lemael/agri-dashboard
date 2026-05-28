@@ -11,13 +11,13 @@ router.get('/', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT u.id, u.username, u.email, u.nom, u.prenom, u.role, u.cc_groupe,
              u.telephone, u.status, u.created_at,
-             cp.ville, cp.secteur_principal,
+             cp.ville, cp.geolocation, cp.secteur_principal,
              COUNT(DISTINCT cc.id)::int AS nb_clients
       FROM dashboard_users u
       LEFT JOIN cc_profiles cp ON cp.email = u.email
       LEFT JOIN cc_clients  cc ON cc.cc_email = u.email
       GROUP BY u.id, u.username, u.email, u.nom, u.prenom, u.role, u.cc_groupe,
-               u.telephone, u.status, u.created_at, cp.ville, cp.secteur_principal
+               u.telephone, u.status, u.created_at, cp.ville, cp.geolocation, cp.secteur_principal
       ORDER BY u.created_at DESC
     `);
     res.json(rows);

@@ -24,8 +24,7 @@ export default function CallCenterSetup() {
     prenom: user?.prenom || '',
     telephone: '',
     ville: '',
-    password: '',
-    password2: '',
+    geolocation: '',
     secteur_principal: '',
     secteur_secondaire: '',
     orientation: '',
@@ -38,8 +37,6 @@ export default function CallCenterSetup() {
       if (!form.prenom.trim())    return 'Le prénom est requis.';
       if (!form.telephone.trim()) return 'Le téléphone est requis.';
       if (!form.ville.trim())     return 'La ville est requise.';
-      if (form.password && form.password.length < 6) return 'Mot de passe minimum 6 caractères.';
-      if (form.password !== form.password2)           return 'Les mots de passe ne correspondent pas.';
     }
     if (step === 1) {
       if (!form.secteur_principal)  return 'Choisissez un secteur principal.';
@@ -69,10 +66,10 @@ export default function CallCenterSetup() {
         prenom: form.prenom,
         telephone: form.telephone,
         ville: form.ville,
+        geolocation: form.geolocation || undefined,
         secteur_principal: form.secteur_principal,
         secteur_secondaire: form.secteur_secondaire,
         orientation: form.orientation,
-        password: form.password || undefined,
       });
       login({ ...user, prenom: form.prenom, profile_complete: true });
       navigate('/cc-dashboard', { replace: true });
@@ -141,15 +138,7 @@ export default function CallCenterSetup() {
               <Field label="Prénom *" value={form.prenom} onChange={v => set('prenom', v)} placeholder="Votre prénom" />
               <Field label="Téléphone *" value={form.telephone} onChange={v => set('telephone', v)} placeholder="+237 6XX XXX XXX" type="tel" />
               <Field label="Ville *" value={form.ville} onChange={v => set('ville', v)} placeholder="Ex: Yaoundé, Douala..." />
-              <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 14 }}>
-                <div style={{ fontSize: 12, color: '#636e72', marginBottom: 10 }}>
-                  Changer de mot de passe (optionnel)
-                </div>
-                <div style={{ display: 'grid', gap: 10 }}>
-                  <Field label="Nouveau mot de passe" value={form.password} onChange={v => set('password', v)} type="password" placeholder="Laisser vide pour garder l'actuel" autoComplete="new-password" />
-                  <Field label="Confirmer" value={form.password2} onChange={v => set('password2', v)} type="password" placeholder="Répéter le mot de passe" autoComplete="new-password" />
-                </div>
-              </div>
+              <GeoField value={form.geolocation} onChange={v => set('geolocation', v)} />
             </div>
           )}
 
@@ -266,6 +255,52 @@ function Field({ label, value, onChange, placeholder, type = 'text', autoComplet
           background: '#fafafa',
         }}
       />
+    </div>
+  );
+}
+
+function GeoField({ value, onChange }) {
+  const [loading, setLoading] = React.useState(false);
+  const [geoErr, setGeoErr] = React.useState('');
+
+  function detect() {
+    if (!navigator.geolocation) { setGeoErr('Géolocalisation non supportée.'); return; }
+    setLoading(true);
+    setGeoErr('');
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        onChange(`${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`);
+        setLoading(false);
+      },
+      () => { setGeoErr('Accès refusé ou position indisponible.'); setLoading(false); },
+      { timeout: 8000 }
+    );
+  }
+
+  return (
+    <div>
+      <label style={labelStyle}>Géolocalisation <span style={{ fontSize: 11, color: '#aaa', fontWeight: 400 }}>(optionnel)</span></label>
+      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="Ex: 3.84800, 11.50240 ou adresse"
+          autoComplete="off"
+          style={{
+            flex: 1, padding: '9px 12px', borderRadius: 8, fontSize: 13,
+            border: '1px solid #e0e0e0', outline: 'none', background: '#fafafa',
+          }}
+        />
+        <button type="button" onClick={detect} disabled={loading} style={{
+          padding: '9px 14px', borderRadius: 8, border: 'none',
+          background: loading ? '#b2bec3' : '#1e3a2f', color: '#fff',
+          fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
+        }}>
+          {loading ? '⏳' : '📍 Détecter'}
+        </button>
+      </div>
+      {geoErr && <div style={{ fontSize: 11, color: '#c0392b', marginTop: 4 }}>{geoErr}</div>}
     </div>
   );
 }

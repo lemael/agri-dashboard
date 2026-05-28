@@ -127,7 +127,7 @@ export default function GestionUtilisateurs() {
           <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,.08)' }}>
             <thead>
               <tr style={{ background: '#f8f9fa' }}>
-                {['Nom', 'Pseudonyme', 'Rôle', 'Téléphone', 'Ville', 'Secteur commercial', 'Nb clients', 'Statut', 'Action'].map(h => (
+                {['Nom', 'Pseudonyme', 'Rôle', 'Téléphone', 'Ville', 'Géolocalisation', 'Secteur commercial', 'Nb clients', 'Statut', 'Action'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#495057', borderBottom: '1px solid #dee2e6', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -162,6 +162,13 @@ export default function GestionUtilisateurs() {
                     </td>
                     <td style={tdStyle}>{u.telephone || '—'}</td>
                     <td style={tdStyle}>{u.ville || '—'}</td>
+                    <td style={tdStyle}>
+                      {u.geolocation
+                        ? <a href={`https://maps.google.com/?q=${encodeURIComponent(u.geolocation)}`} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#1565c0' }}>
+                            📍 {u.geolocation}
+                          </a>
+                        : '—'}
+                    </td>
                     <td style={tdStyle}>{u.secteur_principal || '—'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       {u.role === 'call_center'
