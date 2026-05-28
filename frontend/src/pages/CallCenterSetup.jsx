@@ -140,8 +140,8 @@ export default function CallCenterSetup() {
                   Changer de mot de passe (optionnel)
                 </div>
                 <div style={{ display: 'grid', gap: 10 }}>
-                  <Field label="Nouveau mot de passe" value={form.password} onChange={v => set('password', v)} type="password" placeholder="Laisser vide pour garder l'actuel" />
-                  <Field label="Confirmer" value={form.password2} onChange={v => set('password2', v)} type="password" placeholder="Répéter le mot de passe" />
+                  <Field label="Nouveau mot de passe" value={form.password} onChange={v => set('password', v)} type="password" placeholder="Laisser vide pour garder l'actuel" autoComplete="new-password" />
+                  <Field label="Confirmer" value={form.password2} onChange={v => set('password2', v)} type="password" placeholder="Répéter le mot de passe" autoComplete="new-password" />
                 </div>
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function CallCenterSetup() {
   );
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text' }) {
+function Field({ label, value, onChange, placeholder, type = 'text', autoComplete = 'off' }) {
   return (
     <div>
       <label style={labelStyle}>{label}</label>
@@ -253,6 +253,7 @@ function Field({ label, value, onChange, placeholder, type = 'text' }) {
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         style={{
           width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 14, marginTop: 4,
           border: '1px solid #e0e0e0', outline: 'none', boxSizing: 'border-box',
