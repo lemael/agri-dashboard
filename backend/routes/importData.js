@@ -1,112 +1,151 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { pool } = require('../db');
 
-/**
- * POST /api/import
- * Importe les données JSON depuis l'app Flutter.
- * Body: { orders, revendeurOrders, ventes, products, profiles }
- */
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { orders, revendeurOrders, ventes, products, profiles, users } = req.body;
-  let imported = { orders: 0, revendeurOrders: 0, ventes: 0, products: 0, profiles: 0, producteurs: 0 };
+  const imported = { orders: 0, revendeurOrders: 0, ventes: 0, products: 0, profiles: 0, producteurs: 0 };
 
-  // --- Orders (grossiste) ---
-  if (orders?.commandes) {
-    const upsert = db.prepare(`
-      INSERT OR REPLACE INTO orders (id, grossiste_email, commande_at, status, produit)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    const batchOrders = db.transaction((items) => {
-      for (const o of items) {
-        upsert.run(o.id, o.grossisteEmail, o.commandeAt, o.status, JSON.stringify(o.produit));
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // --- Orders (grossiste) ---
+    if (orders?.commandes) {
+      for (const o of orders.commandes) {
+        await client.query(
+          `INSERT INTO orders (id, grossiste_email, commande_at, status, produit)
+           VALUES ($1,$2,$3,$4,$5)
+           ON CONFLICT (id) DO UPDATE SET
+             grossiste_email = EXCLUDED.grossiste_email,
+             commande_at = EXCLUDED.commande_at,
+             status = EXCLUDED.status,
+             produit = EXCLUDED.produit`,
+          [o.id, o.grossisteEmail, o.commandeAt, o.status, JSON.stringify(o.produit)]
+        );
         imported.orders++;
       }
-    });
-    batchOrders(orders.commandes);
-  }
+    }
 
-  // --- Revendeur Orders ---
-  if (revendeurOrders?.commandes) {
-    const upsert = db.prepare(`
-      INSERT OR REPLACE INTO revendeur_orders (id, revendeur_email, commande_at, status, produit)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    const batch = db.transaction((items) => {
-      for (const o of items) {
-        upsert.run(o.id, o.revendeurEmail, o.commandeAt, o.status, JSON.stringify(o.produit));
+    // --- Revendeur Orders ---
+    if (revendeurOrders?.commandes) {
+      for (const o of revendeurOrders.commandes) {
+        await client.query(
+          `INSERT INTO revendeur_orders (id, revendeur_email, commande_at, status, produit)
+           VALUES ($1,$2,$3,$4,$5)
+           ON CONFLICT (id) DO UPDATE SET
+             revendeur_email = EXCLUDED.revendeur_email,
+             commande_at = EXCLUDED.commande_at,
+             status = EXCLUDED.status,
+             produit = EXCLUDED.produit`,
+          [o.id, o.revendeurEmail, o.commandeAt, o.status, JSON.stringify(o.produit)]
+        );
         imported.revendeurOrders++;
       }
-    });
-    batch(revendeurOrders.commandes);
-  }
+    }
 
-  // --- Ventes ---
-  if (ventes?.ventes) {
-    const upsert = db.prepare(`
-      INSERT OR REPLACE INTO ventes
-        (id, grossiste_email, created_at, status, type, variete, quantite, prix, etat, producer_email, nom_entreprise, lieu, date_recolte)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    const batch = db.transaction((items) => {
-      for (const v of items) {
-        upsert.run(v.id, v.grossisteEmail, v.createdAt, v.status, v.type, v.variete, v.quantite, v.prix, v.etat, v.producerEmail, v.nomEntreprise, v.lieu, v.dateRecolte);
+    // --- Ventes ---
+    if (ventes?.ventes) {
+      for (const v of ventes.ventes) {
+        await client.query(
+          `INSERT INTO ventes (id, grossiste_email, created_at, status, type, variete, quantite, prix, etat, producer_email, nom_entreprise, lieu, date_recolte)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+           ON CONFLICT (id) DO UPDATE SET
+             grossiste_email = EXCLUDED.grossiste_email,
+             created_at = EXCLUDED.created_at,
+             status = EXCLUDED.status,
+             type = EXCLUDED.type,
+             variete = EXCLUDED.variete,
+             quantite = EXCLUDED.quantite,
+             prix = EXCLUDED.prix,
+             etat = EXCLUDED.etat,
+             producer_email = EXCLUDED.producer_email,
+             nom_entreprise = EXCLUDED.nom_entreprise,
+             lieu = EXCLUDED.lieu,
+             date_recolte = EXCLUDED.date_recolte`,
+          [v.id, v.grossisteEmail, v.createdAt, v.status, v.type, v.variete, v.quantite, v.prix, v.etat, v.producerEmail, v.nomEntreprise, v.lieu, v.dateRecolte]
+        );
         imported.ventes++;
       }
-    });
-    batch(ventes.ventes);
-  }
+    }
 
-  // --- Products ---
-  if (products?.producers) {
-    const upsert = db.prepare(`
-      INSERT OR REPLACE INTO products
-        (id, producer_email, type, variete, quantite, prix, created_at, status, sold_out, etat, lieu, date_recolte, nom_entreprise, photos)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    const batch = db.transaction((producers) => {
-      for (const [email, data] of Object.entries(producers)) {
+    // --- Products ---
+    if (products?.producers) {
+      for (const [email, data] of Object.entries(products.producers)) {
         for (const p of (data.products || [])) {
-          upsert.run(p.id, email, p.type, p.variete, p.quantite, p.prix, p.createdAt, p.status, p.soldOut ? 1 : 0, p.etat, p.lieu, p.dateRecolte, p.nomEntreprise, JSON.stringify(p.photos || []));
+          await client.query(
+            `INSERT INTO products (id, producer_email, type, variete, quantite, prix, created_at, status, sold_out, etat, lieu, date_recolte, nom_entreprise, photos)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+             ON CONFLICT (id) DO UPDATE SET
+               producer_email = EXCLUDED.producer_email,
+               type = EXCLUDED.type,
+               variete = EXCLUDED.variete,
+               quantite = EXCLUDED.quantite,
+               prix = EXCLUDED.prix,
+               created_at = EXCLUDED.created_at,
+               status = EXCLUDED.status,
+               sold_out = EXCLUDED.sold_out,
+               etat = EXCLUDED.etat,
+               lieu = EXCLUDED.lieu,
+               date_recolte = EXCLUDED.date_recolte,
+               nom_entreprise = EXCLUDED.nom_entreprise,
+               photos = EXCLUDED.photos`,
+            [p.id, email, p.type, p.variete, p.quantite, p.prix, p.createdAt, p.status, p.soldOut || false, p.etat, p.lieu, p.dateRecolte, p.nomEntreprise, JSON.stringify(p.photos || [])]
+          );
           imported.products++;
         }
       }
-    });
-    batch(products.producers);
-  }
+    }
 
-  // --- Profiles ---
-  if (profiles && typeof profiles === 'object') {
-    const upsert = db.prepare(`
-      INSERT OR REPLACE INTO profiles (email, nom, prenom, role, telephone, adresse, extra)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-    const batch = db.transaction((items) => {
-      for (const [email, p] of Object.entries(items)) {
-        upsert.run(email, p.nom, p.prenom, p.role, p.telephone, p.adresse, JSON.stringify(p));
+    // --- Profiles ---
+    if (profiles && typeof profiles === 'object') {
+      for (const [email, p] of Object.entries(profiles)) {
+        await client.query(
+          `INSERT INTO profiles (email, nom, prenom, role, telephone, adresse, extra)
+           VALUES ($1,$2,$3,$4,$5,$6,$7)
+           ON CONFLICT (email) DO UPDATE SET
+             nom = EXCLUDED.nom,
+             prenom = EXCLUDED.prenom,
+             role = EXCLUDED.role,
+             telephone = EXCLUDED.telephone,
+             adresse = EXCLUDED.adresse,
+             extra = EXCLUDED.extra`,
+          [email, p.nom, p.prenom, p.role, p.telephone, p.adresse, JSON.stringify(p)]
+        );
         imported.profiles++;
       }
-    });
-    batch(profiles);
-  }
+    }
 
-  // --- Producteurs (from users.json) ---
-  if (users?.producteurs) {
-    const upsert = db.prepare(`
-      INSERT OR REPLACE INTO producteurs
-        (id, nom, prenom, email, telephone, nom_entreprise, nom_exploitation, localisation, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    const batch = db.transaction((items) => {
-      for (const p of items) {
-        upsert.run(p.id, p.nom, p.prenom, p.email, p.telephone, p.nomEntreprise, p.nomExploitation, p.localisation, p.status, p.createdAt);
+    // --- Producteurs (from users.json) ---
+    if (users?.producteurs) {
+      for (const p of users.producteurs) {
+        await client.query(
+          `INSERT INTO producteurs (id, nom, prenom, email, telephone, nom_entreprise, nom_exploitation, localisation, status, created_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+           ON CONFLICT (id) DO UPDATE SET
+             nom = EXCLUDED.nom,
+             prenom = EXCLUDED.prenom,
+             email = EXCLUDED.email,
+             telephone = EXCLUDED.telephone,
+             nom_entreprise = EXCLUDED.nom_entreprise,
+             nom_exploitation = EXCLUDED.nom_exploitation,
+             localisation = EXCLUDED.localisation,
+             status = EXCLUDED.status,
+             created_at = EXCLUDED.created_at`,
+          [p.id, p.nom, p.prenom, p.email, p.telephone, p.nomEntreprise, p.nomExploitation, p.localisation, p.status, p.createdAt]
+        );
         imported.producteurs++;
       }
-    });
-    batch(users.producteurs);
-  }
+    }
 
-  res.json({ ok: true, imported });
+    await client.query('COMMIT');
+    res.json({ ok: true, imported });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
 });
 
 module.exports = router;

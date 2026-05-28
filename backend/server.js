@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const { initDB } = require('./db');
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: '10mb' }));
 
 app.use('/api/orders', require('./routes/orders'));
@@ -19,6 +22,23 @@ app.use('/api/dashboard-users', require('./routes/dashboardUsers'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-app.listen(PORT, () => {
-  console.log(`✅ Agri Dashboard API running on http://localhost:${PORT}`);
+// Serve built frontend in production
+const frontendDist = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendDist));
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  res.sendFile(path.join(frontendDist, 'index.html'));
 });
+
+initDB()
+  .then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ Agri Dashboard API running on http://0.0.0.0:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ DB init failed:', err);
+    process.exit(1);
+  });

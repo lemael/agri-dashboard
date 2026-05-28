@@ -1,29 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { pool } = require('../db');
 
-router.get('/', (req, res) => {
-  const { status } = req.query;
-  let query = 'SELECT * FROM producteurs';
-  const params = [];
-  if (status) {
-    query += ' WHERE status = ?';
-    params.push(status);
+router.get('/', async (req, res) => {
+  try {
+    const { status } = req.query;
+    const params = [];
+    let query = 'SELECT * FROM producteurs';
+    if (status) query += ` WHERE status = $${params.push(status)}`;
+    query += ' ORDER BY created_at DESC';
+    const { rows } = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  query += ' ORDER BY created_at DESC';
-  const rows = db.prepare(query).all(...params);
-  res.json(rows);
 });
 
-router.get('/:id', (req, res) => {
-  const row = db.prepare('SELECT * FROM producteurs WHERE id = ?').get(req.params.id);
-  if (!row) return res.status(404).json({ error: 'Not found' });
-  res.json(row);
+router.get('/:id', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM producteurs WHERE id = $1', [req.params.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-router.delete('/:id', (req, res) => {
-  db.prepare('DELETE FROM producteurs WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
+router.delete('/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM producteurs WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
