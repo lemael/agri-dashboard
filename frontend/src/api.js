@@ -59,8 +59,8 @@ export const api = USE_MOCK ? mockApi : {
   importFromFiles: null,
 
   // Auth
-  login:    (email, password) => post('/auth/login', { email, password }),
-  register: (data)           => post('/auth/register', data),
+  login: (username, password) => post('/auth/login', { username, password }),
+  register: (data)           => post('/auth/register', data), // data: { nom, prenom, username, password }
 
   // Dépenses
   depenses:        (q = '') => get(`/depenses${q}`),

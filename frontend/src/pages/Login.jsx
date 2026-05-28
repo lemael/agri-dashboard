@@ -16,7 +16,7 @@ const ROLE_LABELS = {
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      const res = await api.login(email, password);
+      const res = await api.login(username, password);
       if (!res.ok) { setError(res.error); return; }
       login(res.user);
       navigate('/dashboard', { replace: true });
@@ -74,14 +74,15 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 6 }}>
-              Email
+              Pseudonyme
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="vous@facilitar.cm"
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="Votre pseudonyme"
               required
+              autoComplete="username"
               style={{
                 width: '100%', padding: '10px 14px', borderRadius: 8, fontSize: 14,
                 border: '1px solid #dee2e6', outline: 'none', boxSizing: 'border-box',

@@ -135,22 +135,25 @@ async function initDB() {
   // Add status column if not exists (migration)
   await pool.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active'`);
   await pool.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS telephone TEXT`);
+  await pool.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS username TEXT`);
+  await pool.query(`UPDATE dashboard_users SET username = SPLIT_PART(email, '@', 1) WHERE username IS NULL`);
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboard_users_username ON dashboard_users(username) WHERE username IS NOT NULL`);
 
   // Seed default dashboard users
   const seedUsers = [
-    { id: 'usr_ceo',       email: 'ceo@facilitar.cm',        nom: 'Directeur',  prenom: 'Général', role: 'ceo',         cc_groupe: null, password: 'Admin1234'  },
-    { id: 'usr_compta',    email: 'comptable@facilitar.cm',   nom: 'Nguema',     prenom: 'Sophie',  role: 'comptable',   cc_groupe: null, password: 'Compta1234' },
-    { id: 'usr_cc1',       email: 'cc1@facilitar.cm',         nom: 'Mvondo',     prenom: 'Paul',    role: 'call_center', cc_groupe: 1,    password: 'CC1234'     },
-    { id: 'usr_cc2',       email: 'cc2@facilitar.cm',         nom: 'Abena',      prenom: 'Alice',   role: 'call_center', cc_groupe: 2,    password: 'CC1234'     },
-    { id: 'usr_marketing', email: 'marketing@facilitar.cm',   nom: 'Nkeng',      prenom: 'Bruno',   role: 'marketing',   cc_groupe: null, password: 'Mkt1234'    },
-    { id: 'usr_rh',        email: 'rh@facilitar.cm',          nom: 'Bessem',     prenom: 'Claire',  role: 'rh',          cc_groupe: null, password: 'RH1234'     },
+    { id: 'usr_ceo',       email: 'ceo@facilitar.cm',        username: 'ceo',        nom: 'Directeur',  prenom: 'Général', role: 'ceo',         cc_groupe: null, password: 'Admin1234'  },
+    { id: 'usr_compta',    email: 'comptable@facilitar.cm',   username: 'comptable',  nom: 'Nguema',     prenom: 'Sophie',  role: 'comptable',   cc_groupe: null, password: 'Compta1234' },
+    { id: 'usr_cc1',       email: 'cc1@facilitar.cm',         username: 'cc1',        nom: 'Mvondo',     prenom: 'Paul',    role: 'call_center', cc_groupe: 1,    password: 'CC1234'     },
+    { id: 'usr_cc2',       email: 'cc2@facilitar.cm',         username: 'cc2',        nom: 'Abena',      prenom: 'Alice',   role: 'call_center', cc_groupe: 2,    password: 'CC1234'     },
+    { id: 'usr_marketing', email: 'marketing@facilitar.cm',   username: 'marketing',  nom: 'Nkeng',      prenom: 'Bruno',   role: 'marketing',   cc_groupe: null, password: 'Mkt1234'    },
+    { id: 'usr_rh',        email: 'rh@facilitar.cm',          username: 'rh',         nom: 'Bessem',     prenom: 'Claire',  role: 'rh',          cc_groupe: null, password: 'RH1234'     },
   ];
   for (const u of seedUsers) {
     await pool.query(
-      `INSERT INTO dashboard_users (id, email, nom, prenom, role, cc_groupe, password_hash, status, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', $8)
-       ON CONFLICT (email) DO NOTHING`,
-      [u.id, u.email, u.nom, u.prenom, u.role, u.cc_groupe, hashPwd(u.password), new Date().toISOString()]
+      `INSERT INTO dashboard_users (id, email, username, nom, prenom, role, cc_groupe, password_hash, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active', $9)
+       ON CONFLICT (email) DO UPDATE SET username = EXCLUDED.username`,
+      [u.id, u.email, u.username, u.nom, u.prenom, u.role, u.cc_groupe, hashPwd(u.password), new Date().toISOString()]
     );
   }
 }

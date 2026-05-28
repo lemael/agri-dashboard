@@ -4,7 +4,7 @@ import { api } from '../api';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ nom: '', prenom: '', email: '', telephone: '', password: '', password2: '' });
+  const [form, setForm] = useState({ nom: '', prenom: '', username: '', password: '', password2: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [done, setDone]       = useState(false);
@@ -14,7 +14,7 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!form.nom || !form.prenom || !form.email || !form.password)
+    if (!form.nom || !form.prenom || !form.username || !form.password)
       return setError('Tous les champs obligatoires (*) doivent être remplis.');
     if (form.password.length < 6)
       return setError('Mot de passe minimum 6 caractères.');
@@ -26,8 +26,7 @@ export default function Register() {
       const res = await api.register({
         nom: form.nom,
         prenom: form.prenom,
-        email: form.email,
-        telephone: form.telephone,
+        username: form.username,
         password: form.password,
       });
       if (res.error) throw new Error(res.error);
@@ -89,8 +88,7 @@ export default function Register() {
                     <Field label="Nom *" value={form.nom} onChange={v => set('nom', v)} placeholder="Nom de famille" />
                     <Field label="Prénom *" value={form.prenom} onChange={v => set('prenom', v)} placeholder="Prénom" />
                   </div>
-                  <Field label="Email *" value={form.email} onChange={v => set('email', v)} placeholder="vous@email.com" type="email" />
-                  <Field label="Téléphone" value={form.telephone} onChange={v => set('telephone', v)} placeholder="+237 6XX XXX XXX" type="tel" />
+                  <Field label="Pseudonyme *" value={form.username} onChange={v => set('username', v)} placeholder="Choisir un pseudonyme" />
                   <Field label="Mot de passe *" value={form.password} onChange={v => set('password', v)} type="password" placeholder="Min. 6 caractères" />
                   <Field label="Confirmer le mot de passe *" value={form.password2} onChange={v => set('password2', v)} type="password" placeholder="Répéter le mot de passe" />
                 </div>
