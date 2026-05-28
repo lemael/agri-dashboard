@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   if (!stats) return <div style={{ color: '#636e72' }}>Chargement…</div>;
 
-  const { totals, pending, chiffreAffaires, recentOrders, recentRevOrders, ordersByStatus } = stats;
+  const { totals, pending: statsPending, chiffreAffaires, recentOrders, recentRevOrders, ordersByStatus } = stats;
 
   const fmt = (n) => new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' FCFA';
 
@@ -144,9 +144,9 @@ export default function Dashboard() {
 
       {/* KPI */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>
-        <StatsCard label="Commandes grossiste" value={totals.totalOrders} color="#4caf7d" sub={`${pending.pendingOrders} en attente`} />
-        <StatsCard label="Commandes revendeur" value={totals.totalRevOrders} color="#2196f3" sub={`${pending.pendingRevOrders} en attente`} />
-        <StatsCard label="Ventes disponibles" value={pending.ventesDispos} color="#ff9800" sub={`${totals.totalVentes} total`} />
+        <StatsCard label="Commandes grossiste" value={totals.totalOrders} color="#4caf7d" sub={`${statsPending.pendingOrders} en attente`} />
+        <StatsCard label="Commandes revendeur" value={totals.totalRevOrders} color="#2196f3" sub={`${statsPending.pendingRevOrders} en attente`} />
+        <StatsCard label="Ventes disponibles" value={statsPending.ventesDispos} color="#ff9800" sub={`${totals.totalVentes} total`} />
         <StatsCard label="Produits listés" value={totals.totalProducts} color="#9c27b0" />
         <StatsCard label="Chiffre d'affaires" value={fmt(chiffreAffaires.total)} color="#e91e63" sub="cmds grossiste + revendeur" />
       </div>
