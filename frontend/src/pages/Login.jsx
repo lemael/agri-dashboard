@@ -128,27 +128,7 @@ export default function Login() {
           </button>
         </form>
 
-        <div style={{ marginTop: 28, padding: 16, background: '#f8f9fa', borderRadius: 8, fontSize: 12, color: '#636e72' }}>
-          <strong style={{ color: '#495057' }}>Comptes de démonstration :</strong>
-          <div style={{ marginTop: 8, display: 'grid', gap: 4 }}>
-            {[
-              ['ceo@facilitar.cm', 'Admin1234', 'CEO'],
-              ['comptable@facilitar.cm', 'Compta1234', 'Comptable'],
-              ['cc1@facilitar.cm', 'CC1234', 'Call Center G1'],
-              ['cc2@facilitar.cm', 'CC1234', 'Call Center G2'],
-              ['marketing@facilitar.cm', 'Mkt1234', 'Marketing'],
-              ['rh@facilitar.cm', 'RH1234', 'RH'],
-            ].map(([e, p, label]) => (
-              <div
-                key={e}
-                onClick={() => { setEmail(e); setPassword(p); }}
-                style={{ cursor: 'pointer', padding: '4px 8px', borderRadius: 6, background: '#e9ecef' }}
-              >
-                <strong>{label}</strong> — {e}
-              </div>
-            ))}
-          </div>
-        </div>
+
       </div>
     </div>
   );

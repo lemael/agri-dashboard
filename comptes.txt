@@ -1,0 +1,11 @@
+Comptes de démonstration — Facilitar Dashboard
+===============================================
+
+Rôle           | Email                     | Mot de passe
+---------------|---------------------------|-------------
+CEO            | ceo@facilitar.cm          | Admin1234
+Comptable      | comptable@facilitar.cm    | Compta1234
+Call Center G1 | cc1@facilitar.cm          | CC1234
+Call Center G2 | cc2@facilitar.cm          | CC1234
+Marketing      | marketing@facilitar.cm    | Mkt1234
+RH             | rh@facilitar.cm           | RH1234
