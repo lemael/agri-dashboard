@@ -3,12 +3,147 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 
+const COSMETIQUE_SUBCATS = [
+  // Soins du visage
+  'Crème visage', 'Sérum', 'Nettoyant visage', 'Gommage visage', 'Masque facial', 'Lotion tonique', 'Anti-acné', 'Anti-âge',
+  // Maquillage
+  'Fond de teint', 'Rouge à lèvres', 'Poudre', 'Mascara', 'Eyeliner', 'Blush', 'Palette maquillage',
+  // Soins capillaires
+  'Shampoing', 'Après-shampoing', 'Huile cheveux', 'Gel coiffant', 'Perruques', 'Extensions', 'Traitement capillaire',
+  // Parfumerie
+  'Parfum homme', 'Parfum femme', 'Déodorant', 'Brume corporelle', 'Eau de toilette',
+  // Soins du corps
+  'Lait corporel', 'Crème hydratante', 'Savon de beauté', 'Gommage corps', 'Huile corporelle', 'Beurre de karité',
+  // Produits naturels / bio
+  'Huile essentielle', 'Produits bio', 'Savon artisanal', 'Cosmétique naturel', 'Aloe vera',
+  // Cosmétique homme
+  'Barbe', 'Après-rasage', 'Gel douche homme', 'Crème homme',
+  // Cosmétique femme
+  'Soins intimes', 'Kits beauté', 'Accessoires maquillage', 'Produits beauté femme',
+  // Onglerie / Nail care
+  'Vernis', 'Faux ongles', 'Gel UV', 'Dissolvant', 'Accessoires ongles',
+  // Accessoires beauté
+  'Pinceaux', 'Éponge maquillage', 'Miroir', 'Trousse beauté', 'Lisseur', 'Sèche-cheveux',
+];
+
+const VETEMENTS_SUBCATS = [
+  // Vêtements Femme
+  'Robes', 'Jupes', 'Jeans femme', 'Tops / T-shirts', 'Vestes femme', 'Pantalons femme', 'Ensembles femme', 'Lingerie', 'Vêtements traditionnels',
+  // Vêtements Homme
+  'Chemises', 'T-shirts homme', 'Jeans homme', 'Costumes', 'Vestes homme', 'Shorts', 'Pantalons homme', 'Sous-vêtements homme',
+  // Vêtements Enfant
+  'Bébé', 'Garçon', 'Fille', 'Uniformes scolaires', 'Habits naissance',
+  // Chaussures
+  'Chaussures homme', 'Chaussures femme', 'Sandales', 'Baskets', 'Talons', 'Bottes', 'Chaussures enfant',
+  // Accessoires de mode
+  'Ceintures', 'Sacs', 'Casquettes', 'Lunettes', 'Bijoux fantaisie', 'Portefeuilles', 'Montres',
+  // Sport & Fitness
+  'Tenues sportives', 'Chaussures sport', 'Jogging', 'Leggings', 'Maillots', 'Accessoires fitness',
+  // Mode traditionnelle / locale
+  'Boubou', 'Wax', 'Kente', 'Bazin', 'Tenues africaines', 'Voiles / hijab',
+  // Luxe & Boutique
+  'Marques premium', 'Vêtements importés', 'Articles haut de gamme',
+  // Friperie / Occasion
+  'Vêtements seconde main', 'Chaussures occasion', 'Balles de friperie',
+  // Couture & Personnalisation
+  'Couture sur mesure', 'Retouches', 'Broderie', 'Impression textile',
+];
+
+const MAISON_SUBCATS = [
+  // Cuisine
+  'Assiettes', 'Casseroles', 'Poêles', 'Cuillères', 'Mixeurs', 'Bouilloires', 'Boîtes de conservation', 'Ustensiles cuisine', 'Gobelets / verres',
+  // Salon & Décoration
+  'Rideaux', 'Tapis', 'Coussins', 'Table basse', 'Lampes', 'Décoration murale', 'Horloges', 'Cadres photo', 'Plantes artificielles',
+  // Salle de bain / Douche
+  'Serviettes', 'Rideaux douche', 'Porte-savon', 'Tapis douche', 'Brosse toilette', 'Accessoires lavabo', 'Miroirs salle de bain',
+  // Produits ménagers
+  'Savon ménager', 'Détergents', 'Eau de javel', 'Désinfectants', 'Nettoyants sol', 'Liquide vaisselle', 'Éponges', 'Balais', 'Serpillières',
+  // Literie & Chambre
+  'Draps', 'Couvertures', 'Oreillers', 'Moustiquaires', 'Housses matelas', 'Rideaux chambre',
+  // Électroménager maison
+  'Ventilateurs', 'Fers à repasser', 'Aspirateurs', 'Micro-ondes', 'Réchauds', 'Machines à laver',
+  // Rangement & Organisation
+  'Étagères', 'Boîtes rangement', 'Paniers', 'Porte-chaussures', 'Armoires plastiques',
+  // Jardin & Extérieur
+  'Pots de fleurs', "Tuyaux d'arrosage", 'Chaises extérieures', 'Outils jardin', 'Lampes extérieures',
+  // Sécurité Maison
+  'Caméras', 'Serrures', 'Alarmes', 'Détecteurs fumée',
+  // Décoration événementielle
+  'Décoration mariage', 'Décoration anniversaire', 'Bougies', 'Ballons', 'Nappes',
+];
+
+const ELECTRONIQUE_SUBCATS = [
+  // Téléphones & Smartphones
+  'Smartphones Android', 'iPhone', 'Téléphones simples', 'Téléphones professionnels', 'Téléphones gaming', 'Téléphones reconditionnés',
+  'Chargeurs', 'Écouteurs', 'Casques Bluetooth', 'Coques', 'Verres trempés', 'Power banks', 'Câbles USB', 'Supports téléphone', 'Accessoires téléphone',
+  // Télévision & Multimédia
+  'Smart TV', 'Android TV', 'Télévision LED', 'Télévision OLED', 'Décodeurs', 'Antennes TV', 'Home cinéma', 'Projecteurs', 'Télécommandes',
+  // Informatique
+  'Ordinateurs portables', 'PC bureau', 'Écrans', 'Claviers', 'Souris', 'Imprimantes', 'Disques durs', 'SSD', 'Clés USB', 'Routeurs WiFi',
+  // Gaming
+  'Consoles', 'Manettes', 'Casques gaming', 'Chaises gaming',
+  // Électroménager
+  'Réfrigérateurs', 'Mixeurs', 'Micro-ondes', 'Cuisinières', 'Bouilloires', 'Machines café',
+  'Machines à laver', 'Aspirateurs', 'Fers à repasser', 'Ventilateurs', 'Climatiseurs',
+  // Audio & Son
+  'Haut-parleurs Bluetooth', 'Baffles', 'Casques audio', 'Micros', 'Soundbars', 'Radios',
+  // Énergie & Électricité
+  'Panneaux solaires', 'Batteries', 'Onduleurs', 'Multiprises', 'Générateurs', 'Lampes rechargeables', 'Ampoules LED',
+  // Sécurité électronique
+  'Caméras surveillance', 'Alarmes', 'Détecteurs mouvement', 'Serrures intelligentes',
+  // Accessoires électroniques
+  'Adaptateurs', 'Cartes mémoire', 'Chargeurs universels', 'Batteries externes', 'Connecteurs HDMI', 'Supports TV', 'Rallonges électriques',
+  // Réseaux & Communication
+  'Modems', 'Routeurs', 'Switch réseau', 'Répéteurs WiFi', 'Téléphones IP',
+  // Objets connectés / Smart devices
+  'Montres connectées', 'Bracelets connectés', 'Smart home', 'Alexa / Google Home', 'Caméras connectées',
+];
+
+const ALIMENTAIRE_SUBCATS = [
+  // Produits frais — Fruits
+  'Banane', 'Orange', 'Pomme', 'Mangue', 'Avocat', 'Ananas',
+  // Produits frais — Légumes
+  'Tomate', 'Oignon', 'Piment', 'Carotte', 'Chou', 'Salade',
+  // Produits frais — Animaux
+  'Viande', 'Poulet', 'Poisson', 'Fruits de mer', 'Œufs',
+  // Produits frais — Laitiers
+  'Lait', 'Yaourt', 'Fromage', 'Beurre',
+  // Produits secs & épicerie
+  'Riz', 'Farine', 'Sucre', 'Haricots', 'Maïs', 'Pâtes alimentaires', 'Semoule', 'Huile alimentaire', 'Sel', 'Épices',
+  // Conserves
+  'Sardines', 'Thon', 'Tomates en conserve', 'Légumes en boîte', 'Lait concentré', 'Corned beef', 'Sauce tomate', 'Petits pois en conserve',
+  // Pâtisserie & boulangerie
+  'Pain', 'Baguette', 'Croissant', 'Sandwich', 'Gâteaux', 'Biscuits', 'Beignets', 'Muffins', 'Tartes', 'Chocolats',
+  // Boissons gazeuses
+  'Soda', 'Eau gazeuse',
+  // Jus & boissons naturelles
+  'Jus fruits', 'Jus naturels', 'Smoothies',
+  // Eau
+  'Eau minérale', 'Eau purifiée',
+  // Boissons chaudes
+  'Café', 'Thé', 'Chocolat chaud',
+  // Boissons énergétiques
+  'Energy drinks',
+  // Produits surgelés
+  'Poulet congelé', 'Poisson congelé', 'Frites surgelées', 'Légumes congelés', 'Glaces',
+  // Produits locaux / traditionnels
+  'Manioc', 'Fufu', 'Attiéké', 'Plantain', 'Couscous local', 'Huile rouge', 'Produits artisanaux',
+  // Snacks & confiseries
+  'Bonbons', 'Chips', 'Popcorn', 'Chewing-gum', 'Biscuits apéritifs',
+  // Produits bio & santé
+  'Produits bio', 'Produits sans sucre', 'Produits diététiques', 'Céréales santé', 'Produits vegan',
+  // Restauration rapide / Fast-food
+  'Pizza', 'Burger', 'Shawarma', 'Poulet braisé', 'Frites', 'Hot-dog',
+];
+
+const SECTORS_WITH_DATALIST = ['Cosmétique', 'Vêtements', 'Accessoires maison', 'Appareils électroniques', 'Alimentaire'];
+
 const SECTORS = {
-  'Cosmétique':              ['Femme', 'Homme', 'Huile', 'Parfum', 'Maquillage'],
-  'Alimentaire':             ['Produits frais', 'Conserves', 'Pâtisserie', 'Boissons'],
-  'Appareils électroniques': ['Téléphone', 'Télévision', 'Électroménager', 'Accessoires'],
-  'Vêtements':               ['Femme', 'Homme', 'Chaussures', 'Robes', 'Pantalons', 'Ceintures'],
-  'Accessoires maison':      ['Cuisine', 'Salon', 'Douche', 'Savon ménager'],
+  'Cosmétique':              COSMETIQUE_SUBCATS,
+  'Alimentaire':             ALIMENTAIRE_SUBCATS,
+  'Appareils électroniques': ELECTRONIQUE_SUBCATS,
+  'Vêtements':               VETEMENTS_SUBCATS,
+  'Accessoires maison':      MAISON_SUBCATS,
 };
 
 const STEPS = ['Informations', 'Secteur commercial', 'Orientation'];
@@ -168,21 +303,29 @@ export default function CallCenterSetup() {
               {form.secteur_principal && (
                 <div>
                   <label style={labelStyle}>Sous-catégorie *</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
-                    {subcategories.map(sc => (
-                      <button key={sc} onClick={() => set('secteur_secondaire', sc)}
-                        style={{
-                          padding: '7px 14px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
-                          border: form.secteur_secondaire === sc ? '2px solid #4caf7d' : '1px solid #e0e0e0',
-                          background: form.secteur_secondaire === sc ? '#4caf7d' : '#fff',
-                          color: form.secteur_secondaire === sc ? '#fff' : '#495057',
-                          fontWeight: form.secteur_secondaire === sc ? 700 : 400,
-                          transition: 'all .15s',
-                        }}>
-                        {sc}
-                      </button>
-                    ))}
-                  </div>
+                  {SECTORS_WITH_DATALIST.includes(form.secteur_principal) ? (
+                    <SubCatDatalist
+                      value={form.secteur_secondaire}
+                      onChange={v => set('secteur_secondaire', v)}
+                      options={subcategories}
+                    />
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                      {subcategories.map(sc => (
+                        <button key={sc} onClick={() => set('secteur_secondaire', sc)}
+                          style={{
+                            padding: '7px 14px', borderRadius: 20, fontSize: 13, cursor: 'pointer',
+                            border: form.secteur_secondaire === sc ? '2px solid #4caf7d' : '1px solid #e0e0e0',
+                            background: form.secteur_secondaire === sc ? '#4caf7d' : '#fff',
+                            color: form.secteur_secondaire === sc ? '#fff' : '#495057',
+                            fontWeight: form.secteur_secondaire === sc ? 700 : 400,
+                            transition: 'all .15s',
+                          }}>
+                          {sc}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -371,6 +514,36 @@ function GeoField({ value, onChange }) {  const [loading, setLoading] = React.us
 }
 
 const labelStyle = { fontSize: 12, fontWeight: 600, color: '#495057', textTransform: 'uppercase', letterSpacing: '0.5px' };
+
+function SubCatDatalist({ value, onChange, options }) {
+  const id = 'subcat-cosmetique-list';
+  return (
+    <div style={{ marginTop: 6 }}>
+      <input
+        type="text"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        list={id}
+        placeholder="Tapez ou choisissez une sous-catégorie…"
+        autoComplete="off"
+        style={{
+          width: '100%', padding: '9px 12px', borderRadius: 8, fontSize: 14,
+          border: value ? '1px solid #4caf7d' : '1px solid #e0e0e0',
+          outline: 'none', boxSizing: 'border-box', background: '#fafafa',
+        }}
+      />
+      <datalist id={id}>
+        {options.map(o => <option key={o} value={o} />)}
+      </datalist>
+      {value && (
+        <div style={{ fontSize: 11, color: '#4caf7d', marginTop: 3 }}>✓ {value}</div>
+      )}
+      <div style={{ fontSize: 11, color: '#aaa', marginTop: 3 }}>
+        Ex : Robes, Sérum, Casseroles, Smartphones Android, Riz, Poulet…
+      </div>
+    </div>
+  );
+}
 
 const btnPrimary = {
   padding: '11px 20px', borderRadius: 8, fontWeight: 700, fontSize: 14,
