@@ -1,10 +1,9 @@
-[build]
-builder = "nixpacks"
-buildCommand = "cd frontend && npm install && npm run build && cd ../backend && npm install"
-
-[deploy]
-startCommand = "node backend/server.js"
-healthcheckPath = "/api/health"
-healthcheckTimeout = 30
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+# Monorepo Railway — 3 services séparés :
+#
+#  1. PostgreSQL  → ajouter via "Add Service > Database > PostgreSQL" dans Railway
+#  2. backend     → service GitHub, Source Directory = backend/  (utilise backend/railway.toml)
+#  3. frontend    → service GitHub, Source Directory = frontend/ (utilise frontend/railway.toml)
+#
+# Variables d'environnement à configurer :
+#   backend  : DATABASE_URL (auto via Railway), CORS_ORIGIN = URL publique du frontend
+#   frontend : VITE_API_URL = URL publique du backend

@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { initDB } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,16 +20,6 @@ app.use('/api/depenses', require('./routes/depenses'));
 app.use('/api/dashboard-users', require('./routes/dashboardUsers'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-
-// Serve built frontend in production
-const frontendDist = path.join(__dirname, '../frontend/dist');
-app.use(express.static(frontendDist));
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'Not found' });
-  }
-  res.sendFile(path.join(frontendDist, 'index.html'));
-});
 
 initDB()
   .then(() => {
