@@ -14,7 +14,7 @@ const SECTORS = {
 const STEPS = ['Informations', 'Secteur commercial', 'Orientation'];
 
 export default function CallCenterSetup() {
-  const { user, login } = useAuth();
+  const { user, login, logout } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -96,6 +96,12 @@ export default function CallCenterSetup() {
           <div style={{ fontSize: 36 }}>🌱</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginTop: 4 }}>Facilitar</div>
           <div style={{ fontSize: 14, color: '#a0c4ad', marginTop: 4 }}>Configuration de votre profil</div>
+          <button
+            onClick={() => { logout(); navigate('/login', { replace: true }); }}
+            style={{ marginTop: 10, background: 'none', border: 'none', color: '#a0c4ad', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Se déconnecter
+          </button>
         </div>
 
         {/* Progress */}
