@@ -6,7 +6,7 @@ import { api } from '../api';
 const ALL_LINKS = [
   { to: '/dashboard',           label: '🏠 Dashboard',          roles: ['ceo','comptable','call_center','marketing','rh'], cc_groupe: null },
   { to: '/cc-dashboard',        label: '📱 Mon Espace CC',       roles: ['call_center'], cc_groupe: null },
-  { to: '/producteurs',         label: '👨‍🌾 Producteurs',        roles: ['ceo','marketing','call_center'], cc_groupe: 1 },
+  { to: '/producteurs',         label: '👨‍🌾 Producteurs',        roles: ['ceo','marketing'], cc_groupe: null },
   { to: '/produits',            label: '🌿 Produits',            roles: ['ceo','marketing','call_center'], cc_groupe: 1 },
   { to: '/commandes-grossiste', label: '📦 Cmds Grossiste',      roles: ['ceo','call_center'], cc_groupe: 1 },
   { to: '/ventes',              label: '💰 Ventes',              roles: ['ceo','marketing','call_center'], cc_groupe: 2 },

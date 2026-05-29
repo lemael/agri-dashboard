@@ -48,6 +48,7 @@ export const api = USE_MOCK ? mockApi : {
   updateOrderStatus:  (id, status) => patch(`/orders/${id}/status`, { status }),
   revendeurOrders:(q = '') => get(`/revendeur-orders${q}`),
   updateRevOrderStatus: (id, status) => patch(`/revendeur-orders/${id}/status`, { status }),
+  createRevendeurOrder: (data) => post('/revendeur-orders', data),
   ventes:         (q = '') => get(`/ventes${q}`),
   updateVenteStatus: (id, status) => patch(`/ventes/${id}/status`, { status }),
   deleteVente:    (id) => del(`/ventes/${id}`),
@@ -67,6 +68,9 @@ export const api = USE_MOCK ? mockApi : {
   depensesSummary: ()       => get('/depenses/summary'),
   createDepense:   (data)   => post('/depenses', data),
   deleteDepense:   (id)     => del(`/depenses/${id}`),
+
+  // Dépenses CC (filtrées par agent)
+  ccDepenses:      (email)  => get(`/depenses?created_by=${encodeURIComponent(email)}`),
 
   // Comptabilité (module complet)
   comptaOverview:          ()      => get('/comptabilite/dashboard'),
@@ -98,4 +102,17 @@ export const api = USE_MOCK ? mockApi : {
   ccUpdateClient:  (id, data) => put(`/call-center/clients/${id}`, data),
   ccDeleteClient:  (id)    => del(`/call-center/clients/${id}`),
   ccTrends:        (email) => get(`/call-center/trends?email=${encodeURIComponent(email)}`),
+
+  // Souhaits (partagés)
+  ccSouhaits:        (q = '') => get(`/call-center/souhaits${q}`),
+  ccAddSouhait:      (data)   => post('/call-center/souhaits', data),
+  ccUpdateSouhait:   (id, data) => patch(`/call-center/souhaits/${id}`, data),
+  ccDeleteSouhait:   (id)     => del(`/call-center/souhaits/${id}`),
+
+  // Produits des grossistes (pour CC Revendeur)
+  grossisteProduits: ()       => get('/call-center/grossiste-produits'),
+
+  // Historique des prix
+  prixHistory:     ()       => get('/call-center/prix-history'),
+  addPrixHistory:  (data)   => post('/call-center/prix-history', data),
 };

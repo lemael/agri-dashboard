@@ -154,4 +154,137 @@ router.get('/trends', async (req, res) => {
   }
 });
 
+// ── SOUHAITS (partagés entre CC agents) ─────────────────────────────────────
+
+// GET /api/call-center/souhaits?groupe=2  (CC Grossiste lit ceux du groupe 2)
+// GET /api/call-center/souhaits?email=xxx (CC Revendeur lit les siens)
+router.get('/souhaits', async (req, res) => {
+  try {
+    const { groupe, email } = req.query;
+    let rows;
+    if (email) {
+      ({ rows } = await pool.query(
+        'SELECT * FROM cc_souhaits WHERE cc_email = $1 ORDER BY created_at DESC',
+        [email.toLowerCase()]
+      ));
+    } else if (groupe) {
+      // Fetch souhaits from all CC agents of the given groupe
+      ({ rows } = await pool.query(
+        `SELECT s.* FROM cc_souhaits s
+         JOIN dashboard_users u ON u.email = s.cc_email
+         WHERE u.cc_groupe = $1
+         ORDER BY s.created_at DESC`,
+        [parseInt(groupe)]
+      ));
+    } else {
+      ({ rows } = await pool.query('SELECT * FROM cc_souhaits ORDER BY created_at DESC'));
+    }
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/call-center/souhaits
+router.post('/souhaits', async (req, res) => {
+  try {
+    const { cc_email, client_nom, produit, quantite, notes } = req.body;
+    if (!cc_email || !produit) return res.status(400).json({ error: 'cc_email et produit requis' });
+    const id = genId();
+    await pool.query(
+      'INSERT INTO cc_souhaits (id, cc_email, client_nom, produit, quantite, notes, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [id, cc_email.toLowerCase(), client_nom || null, produit, quantite || null, notes || null, new Date().toISOString()]
+    );
+    res.status(201).json({ id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/call-center/souhaits/:id — update quantite and notes only (by owner CC)
+router.patch('/souhaits/:id', async (req, res) => {
+  try {
+    const { quantite, notes, cc_email } = req.body;
+    if (!cc_email) return res.status(400).json({ error: 'cc_email requis' });
+    await pool.query(
+      'UPDATE cc_souhaits SET quantite = $1, notes = $2 WHERE id = $3 AND cc_email = $4',
+      [quantite || null, notes || null, req.params.id, cc_email.toLowerCase()]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/call-center/souhaits/:id
+router.delete('/souhaits/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM cc_souhaits WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/call-center/grossiste-produits — all products from CC Grossiste clients
+router.get('/grossiste-produits', async (req, res) => {
+  try {
+    // Fetch all cc_clients registered by CC Grossiste agents (cc_groupe = 1)
+    const { rows } = await pool.query(
+      `SELECT c.id, c.nom, c.produits, c.cc_email
+       FROM cc_clients c
+       JOIN dashboard_users u ON u.email = c.cc_email
+       WHERE u.cc_groupe = 1`
+    );
+    const produits = [];
+    for (const client of rows) {
+      const ps = client.produits ? JSON.parse(client.produits) : [];
+      ps.forEach((p, i) => {
+        produits.push({
+          grossiste_id:  client.id,
+          grossiste_nom: client.nom,
+          cc_email:      client.cc_email,
+          prod_idx:      i,
+          nom:           p.nom || p.type || `Produit ${i + 1}`,
+          type:          p.type || null,
+          quantite:      p.quantite || null,
+          prix:          p.prix || null,
+          unite:         p.unite || null,
+          notes:         p.notes || null,
+        });
+      });
+    }
+    res.json(produits);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── HISTORIQUE DES PRIX ──────────────────────────────────────────────────────
+
+// GET /api/call-center/prix-history
+router.get('/prix-history', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM prix_history ORDER BY changed_at DESC');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/call-center/prix-history
+router.post('/prix-history', async (req, res) => {
+  try {
+    const { cc_email, grossiste_nom, produit_nom, ancien_prix, nouveau_prix } = req.body;
+    const id = genId();
+    await pool.query(
+      'INSERT INTO prix_history (id, cc_email, grossiste_nom, produit_nom, ancien_prix, nouveau_prix, changed_at) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [id, cc_email, grossiste_nom || null, produit_nom || null, ancien_prix ?? null, nouveau_prix ?? null, new Date().toISOString()]
+    );
+    res.status(201).json({ id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

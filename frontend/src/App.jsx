@@ -18,7 +18,7 @@ import Register from './pages/Register';
 
 // Pages accessibles par rôle (ceo voit tout)
 const ROLE_PATHS = {
-  call_center_1: ['/dashboard', '/producteurs', '/produits', '/commandes-grossiste'],
+  call_center_1: ['/dashboard', '/produits', '/commandes-grossiste'],
   call_center_2: ['/dashboard', '/ventes', '/commandes-revendeur'],
   marketing:     ['/dashboard', '/produits', '/producteurs', '/ventes'],
   comptable:     ['/dashboard', '/comptabilite'],

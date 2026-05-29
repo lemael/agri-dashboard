@@ -6,11 +6,12 @@ const genId = () => 'dep_' + Date.now().toString(36) + '_' + Math.random().toStr
 
 router.get('/', async (req, res) => {
   try {
-    const { categorie, niveau } = req.query;
+    const { categorie, niveau, created_by } = req.query;
     const params = [];
     const conditions = [];
-    if (categorie) conditions.push(`categorie = $${params.push(categorie)}`);
-    if (niveau)    conditions.push(`niveau = $${params.push(niveau)}`);
+    if (categorie)   conditions.push(`categorie = $${params.push(categorie)}`);
+    if (niveau)      conditions.push(`niveau = $${params.push(niveau)}`);
+    if (created_by)  conditions.push(`created_by = $${params.push(created_by)}`);
     let query = 'SELECT * FROM depenses';
     if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
     query += ' ORDER BY date DESC';

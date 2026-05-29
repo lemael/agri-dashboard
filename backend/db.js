@@ -160,6 +160,26 @@ async function initDB() {
       created_by TEXT,
       created_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS cc_souhaits (
+      id TEXT PRIMARY KEY,
+      cc_email TEXT NOT NULL,
+      client_nom TEXT,
+      produit TEXT,
+      quantite TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS prix_history (
+      id TEXT PRIMARY KEY,
+      cc_email TEXT NOT NULL,
+      grossiste_nom TEXT,
+      produit_nom TEXT,
+      ancien_prix NUMERIC,
+      nouveau_prix NUMERIC,
+      changed_at TEXT DEFAULT now()
+    );
   `);
 
   // Add status column if not exists (migration)

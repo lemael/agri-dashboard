@@ -12,6 +12,11 @@ export default function Dashboard() {
   const [pending, setPending] = useState([]);
   const [showPending, setShowPending] = useState(false);
   const [validating, setValidating] = useState(null);
+  const [pendingCCOrders, setPendingCCOrders]   = useState([]);
+  const [showCCOrders, setShowCCOrders]         = useState(false);
+  const [validatingOrder, setValidatingOrder]   = useState(null);
+  const [prixHistory, setPrixHistory]   = useState([]);
+  const [showPrixHist, setShowPrixHist] = useState(false);
 
   useEffect(() => {
     api.stats().then(setStats).catch(() => setError('Impossible de contacter le serveur.'));
@@ -20,6 +25,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (user?.role === 'ceo') {
       api.pendingUsers().then(setPending).catch(() => {});
+      api.revendeurOrders('?status=validation%20CEO').then(d => setPendingCCOrders(Array.isArray(d) ? d : [])).catch(() => {});
+      api.prixHistory().then(d => setPrixHistory(Array.isArray(d) ? d : [])).catch(() => {});
     }
   }, [user]);
 
@@ -35,6 +42,20 @@ export default function Dashboard() {
     await api.rejectUser(id);
     setPending(p => p.filter(u => u.id !== id));
     setValidating(null);
+  }
+
+  async function handleValidateCCOrder(id) {
+    setValidatingOrder(id);
+    await api.updateRevOrderStatus(id, 'en attente');
+    setPendingCCOrders(p => p.filter(o => o.id !== id));
+    setValidatingOrder(null);
+  }
+
+  async function handleRejectCCOrder(id) {
+    setValidatingOrder(id);
+    await api.updateRevOrderStatus(id, 'annulée');
+    setPendingCCOrders(p => p.filter(o => o.id !== id));
+    setValidatingOrder(null);
   }
 
   if (error) return (
@@ -89,7 +110,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Panel validation ── */}
+      {/* ── Panel validation comptes ── */}
       {user?.role === 'ceo' && showPending && (
         <div style={{
           marginBottom: 24, background: '#fff', borderRadius: 12, padding: 20,
@@ -151,6 +172,149 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── Notification CEO : commandes CC en attente validation ── */}
+      {user?.role === 'ceo' && pendingCCOrders.length > 0 && (
+        <div style={{
+          marginBottom: 24, padding: '14px 18px', borderRadius: 12,
+          background: '#fff3e0', border: '1.5px solid #ff9800',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 22 }}>🚀</span>
+            <div>
+              <div style={{ fontWeight: 700, color: '#e65100', fontSize: 15 }}>
+                  {pendingCCOrders.length} vente{pendingCCOrders.length > 1 ? 's' : ''} confirmée{pendingCCOrders.length > 1 ? 's' : ''} par CC Grossiste — en attente de votre validation
+                </div>
+                <div style={{ fontSize: 12, color: '#bf360c', marginTop: 2 }}>
+                  Ces ventes ont été initiées par un CC Revendeur, puis confirmées par un CC Grossiste. Votre validation finale est requise.
+              </div>
+            </div>
+          </div>
+          <button onClick={() => setShowCCOrders(v => !v)} style={{
+            padding: '7px 16px', borderRadius: 8, background: '#ff9800', border: 'none',
+            fontWeight: 700, fontSize: 13, cursor: 'pointer', color: '#fff',
+          }}>
+            {showCCOrders ? 'Masquer ▲' : 'Voir les ventes ▼'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Panel validation commandes CC ── */}
+      {user?.role === 'ceo' && showCCOrders && (
+        <div style={{
+          marginBottom: 24, background: '#fff', borderRadius: 12, padding: 20,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0',
+        }}>
+          <h3 style={{ margin: '0 0 16px', fontSize: 15, color: '#1e3a2f' }}>
+            📋 Ventes CC en attente de validation
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {pendingCCOrders.map(o => {
+              const p = o.produit || {};
+              return (
+                <div key={o.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 16px', background: '#f8f9fa', borderRadius: 10,
+                  border: '1px solid #e9ecef', flexWrap: 'wrap', gap: 8,
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1e3a2f' }}>
+                      {p.type} — {p.variete}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#636e72', marginTop: 2 }}>
+                      Revendeur : <strong>{o.revendeur_email}</strong> · Qté : <strong>{p.quantite}</strong> · Prix : <strong>{Number(p.prix || 0).toLocaleString('fr')} FCFA/u</strong>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#aaa', marginTop: 3 }}>
+                      Grossiste : {p.grossiste_email} · Initié par : {p.initiated_by || '—'} · Le {(o.commande_at || o.created_at || '').slice(0, 10)}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => handleValidateCCOrder(o.id)}
+                      disabled={validatingOrder === o.id}
+                      style={{ padding: '7px 16px', borderRadius: 8, background: '#4caf7d', border: 'none', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                      {validatingOrder === o.id ? '…' : '✓ Valider'}
+                    </button>
+                    <button
+                      onClick={() => handleRejectCCOrder(o.id)}
+                      disabled={validatingOrder === o.id}
+                      style={{ padding: '7px 16px', borderRadius: 8, background: '#ffebee', border: 'none', color: '#c0392b', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                      {validatingOrder === o.id ? '…' : '✕ Refuser'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Historique des prix (CEO) ── */}
+      {user?.role === 'ceo' && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{
+            padding: '12px 18px', borderRadius: 12,
+            background: '#f3e5f5', border: '1.5px solid #ce93d8',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>📈</span>
+              <div>
+                <div style={{ fontWeight: 700, color: '#6a1b9a', fontSize: 15 }}>
+                  Historique des modifications de prix — Stock grossistes
+                </div>
+                <div style={{ fontSize: 12, color: '#7b1fa2', marginTop: 2 }}>
+                  {prixHistory.length} modification{prixHistory.length > 1 ? 's' : ''} enregistrée{prixHistory.length > 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setShowPrixHist(v => !v)} style={{
+              padding: '7px 16px', borderRadius: 8, background: '#9c27b0', border: 'none',
+              fontWeight: 700, fontSize: 13, cursor: 'pointer', color: '#fff',
+            }}>
+              {showPrixHist ? 'Masquer ▲' : 'Voir l\'historique ▼'}
+            </button>
+          </div>
+
+          {showPrixHist && (
+            <div style={{ background: '#fff', borderRadius: 12, padding: 20, marginTop: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', border: '1px solid #f0f0f0' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: 15, color: '#1e3a2f' }}>📈 Historique des prix modifiés</h3>
+              {prixHistory.length === 0
+                ? <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>Aucune modification de prix enregistrée.</div>
+                : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #e9ecef' }}>
+                        {['Date', 'Agent CC', 'Grossiste', 'Produit', 'Ancien prix', 'Nouveau prix', 'Variation'].map(h => (
+                          <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#636e72', fontSize: 12 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {prixHistory.map((r, i) => {
+                        const diff = (r.nouveau_prix || 0) - (r.ancien_prix || 0);
+                        const pct = r.ancien_prix ? ((diff / r.ancien_prix) * 100).toFixed(1) : null;
+                        return (
+                          <tr key={r.id || i} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                            <td style={{ padding: '8px 12px', color: '#636e72' }}>{(r.changed_at || '').slice(0, 16).replace('T', ' ')}</td>
+                            <td style={{ padding: '8px 12px' }}>{r.cc_email?.split('@')[0] || '—'}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 600 }}>{r.grossiste_nom || '—'}</td>
+                            <td style={{ padding: '8px 12px' }}>{r.produit_nom || '—'}</td>
+                            <td style={{ padding: '8px 12px', color: '#636e72' }}>{r.ancien_prix != null ? `${Number(r.ancien_prix).toLocaleString('fr')} FCFA` : '—'}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 700, color: '#1e3a2f' }}>{r.nouveau_prix != null ? `${Number(r.nouveau_prix).toLocaleString('fr')} FCFA` : '—'}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 700, color: diff > 0 ? '#e53935' : diff < 0 ? '#43a047' : '#aaa' }}>
+                              {pct ? `${diff > 0 ? '+' : ''}${pct}%` : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+              }
+            </div>
+          )}
         </div>
       )}
 

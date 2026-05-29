@@ -5,10 +5,14 @@ import StatsCard from '../components/StatsCard';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DEP_CATEGORIES = [
-  { value: 'frais_telephone', label: '📞 Frais téléphoniques', color: '#2196f3' },
-  { value: 'frais_taxi',      label: '🚕 Frais de taxi',        color: '#ff9800' },
-  { value: 'frais_assesoir',  label: '🪑 Frais assesoir',       color: '#9c27b0' },
-  { value: 'frais_promo',     label: '🎁 Frais de promo',       color: '#e91e63' },
+  { value: 'frais_telephone', label: '📞 Fr. téléphoniques', color: '#2196f3' },
+  { value: 'frais_taxi',      label: '🚕 Fr. de taxi',       color: '#ff9800' },
+  { value: 'frais_assesoir',  label: '🪑 Fr. assesoir',      color: '#9c27b0' },
+  { value: 'frais_promo',     label: '🎁 Fr. de promo',      color: '#e91e63' },
+  // Catégories CC agents
+  { value: 'transport',       label: '🚗 Transport CC',      color: '#00897b' },
+  { value: 'communication',   label: '📱 Communication CC',  color: '#039be5' },
+  { value: 'imprevu',         label: '⚠️ Imprévu CC',        color: '#f4511e' },
 ];
 const NIVEAUX = ['producteur', 'grossiste', 'revendeur'];
 
@@ -633,6 +637,7 @@ function TabDepenses() {
   const [summary, setSummary]     = useState(null);
   const [rows, setRows]           = useState(null);
   const [filterCat, setFilterCat] = useState('');
+  const [filterCC, setFilterCC]   = useState(false);
   const [formOpen, setFormOpen]   = useState(false);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState(null);
@@ -641,8 +646,17 @@ function TabDepenses() {
 
   const loadAll = useCallback(() => {
     api.depensesSummary().then(setSummary);
-    api.depenses(filterCat ? `?categorie=${filterCat}` : '').then(setRows);
-  }, [filterCat]);
+    let q = '?';
+    if (filterCat) q += `categorie=${filterCat}&`;
+    if (filterCC)  q += `niveau=vente&`; // CC expenses have niveau=vente or visite — use broad filter below
+    api.depenses(q.length > 1 ? q.slice(0, -1) : '').then(rows => {
+      if (filterCC) {
+        setRows(Array.isArray(rows) ? rows.filter(r => r.niveau === 'vente' || r.niveau === 'visite') : []);
+      } else {
+        setRows(Array.isArray(rows) ? rows : []);
+      }
+    });
+  }, [filterCat, filterCC]);
   useEffect(loadAll, [loadAll]);
 
   const handleAdd = async (e) => {
@@ -678,7 +692,15 @@ function TabDepenses() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-        <FilterBar options={DEP_CATEGORIES.map(c => ({ value: c.value, label: c.label }))} value={filterCat} onChange={setFilterCat} />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <FilterBar options={DEP_CATEGORIES.map(c => ({ value: c.value, label: c.label }))} value={filterCat} onChange={v => { setFilterCat(v); setFilterCC(false); }} />
+          <button onClick={() => { setFilterCC(v => !v); setFilterCat(''); }} style={{
+            padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12,
+            background: filterCC ? '#00897b' : '#e0f2f1', color: filterCC ? '#fff' : '#00897b',
+          }}>
+            {filterCC ? '✅ Dépenses CC' : '📱 Filtrer Dép. CC'}
+          </button>
+        </div>
         <button onClick={() => setFormOpen(o => !o)} style={btnPrimary}>
           {formOpen ? '✕ Annuler' : '+ Ajouter une dépense'}
         </button>
@@ -728,16 +750,29 @@ function TabDepenses() {
           <div style={{ overflowX: 'auto' }}>
             <table style={tableStyle}>
               <thead><tr style={{ background: '#f8f9fa' }}>
-                {['Date', 'Catégorie', 'Montant', 'Bénéficiaire', 'Niveau', 'Description', ''].map(h => <th key={h} style={thStyle}>{h}</th>)}
+                {['Date', 'Agent', 'Catégorie', 'Montant', 'Bénéficiaire', 'Contexte', 'Description', ''].map(h => <th key={h} style={thStyle}>{h}</th>)}
               </tr></thead>
               <tbody>
                 {rows.map(r => (
                   <tr key={r.id} style={{ borderBottom: '1px solid #f1f3f5' }}>
                     <td style={tdStyle}>{r.date}</td>
+                    <td style={tdStyle}>
+                      {r.created_by
+                        ? <span style={{ fontSize: 11, background: '#e3f2fd', color: '#1565c0', padding: '2px 7px', borderRadius: 10, fontWeight: 700 }}>{r.created_by.split('@')[0]}</span>
+                        : <span style={{ color: '#bbb' }}>—</span>}
+                    </td>
                     <td style={tdStyle}><span style={badge(catColor(r.categorie))}>{catLabel(r.categorie)}</span></td>
                     <td style={{ ...tdStyle, fontWeight: 600 }}>{fmt(r.montant)}</td>
                     <td style={tdStyle}>{r.beneficiaire || '—'}</td>
-                    <td style={tdStyle}>{r.niveau ? r.niveau.charAt(0).toUpperCase() + r.niveau.slice(1) : '—'}</td>
+                    <td style={tdStyle}>
+                      {(r.niveau === 'vente' || r.niveau === 'visite')
+                        ? <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 10,
+                            background: r.niveau === 'vente' ? '#e8f5e9' : '#fce4ec',
+                            color: r.niveau === 'vente' ? '#2e7d32' : '#c62828' }}>
+                            {r.niveau === 'vente' ? '🛒 Vente' : '🏃 Visite'}
+                          </span>
+                        : r.niveau ? r.niveau.charAt(0).toUpperCase() + r.niveau.slice(1) : '—'}
+                    </td>
                     <td style={{ ...tdStyle, color: '#636e72' }}>{r.description || '—'}</td>
                     <td style={tdStyle}>
                       <button onClick={async () => { if (!window.confirm('Supprimer ?')) return; await api.deleteDepense(r.id); loadAll(); }}
