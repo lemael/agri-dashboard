@@ -3,5 +3,7 @@ node_modules/
 *.sqlite-journal
 dist/
 .env
+.env.local
 .DS_Store
 frontend/dist/
+TqxboOqy*

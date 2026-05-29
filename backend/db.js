@@ -130,6 +130,36 @@ async function initDB() {
       created_at TEXT,
       updated_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS paiements (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      email TEXT NOT NULL,
+      ordre_id TEXT,
+      montant NUMERIC NOT NULL,
+      montant_paye NUMERIC DEFAULT 0,
+      statut TEXT DEFAULT 'en_attente',
+      echeance TEXT,
+      date_paiement TEXT,
+      notes TEXT,
+      created_by TEXT,
+      created_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS commissions_agents (
+      id TEXT PRIMARY KEY,
+      agent_email TEXT NOT NULL,
+      agent_nom TEXT,
+      periode TEXT NOT NULL,
+      nb_ventes INTEGER DEFAULT 0,
+      ca_realise NUMERIC DEFAULT 0,
+      taux_commission NUMERIC DEFAULT 5,
+      montant_commission NUMERIC DEFAULT 0,
+      statut TEXT DEFAULT 'en_attente',
+      notes TEXT,
+      created_by TEXT,
+      created_at TEXT
+    );
   `);
 
   // Add status column if not exists (migration)
@@ -143,7 +173,7 @@ async function initDB() {
   // Seed default dashboard users
   const seedUsers = [
     { id: 'usr_ceo',       email: 'ceo@facilitar.cm',        username: 'ceo',        nom: 'Directeur',  prenom: 'Général', role: 'ceo',         cc_groupe: null, password: 'Admin1234'  },
-    { id: 'usr_compta',    email: 'comptable@facilitar.cm',   username: 'comptable',  nom: 'Nguema',     prenom: 'Sophie',  role: 'comptable',   cc_groupe: null, password: 'Compta1234' },
+    { id: 'usr_compta',    email: 'comptable@facilitar.cm',   username: 'comptable',  nom: 'Fotso',      prenom: 'Hermann', role: 'comptable',   cc_groupe: null, password: 'Compta1234' },
     { id: 'usr_cc1',       email: 'cc1@facilitar.cm',         username: 'cc1',        nom: 'Mvondo',     prenom: 'Paul',    role: 'call_center', cc_groupe: 1,    password: 'CC1234'     },
     { id: 'usr_cc2',       email: 'cc2@facilitar.cm',         username: 'cc2',        nom: 'Abena',      prenom: 'Alice',   role: 'call_center', cc_groupe: 2,    password: 'CC1234'     },
     { id: 'usr_marketing', email: 'marketing@facilitar.cm',   username: 'marketing',  nom: 'Nkeng',      prenom: 'Bruno',   role: 'marketing',   cc_groupe: null, password: 'Mkt1234'    },
@@ -153,7 +183,7 @@ async function initDB() {
     await pool.query(
       `INSERT INTO dashboard_users (id, email, username, nom, prenom, role, cc_groupe, password_hash, status, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'active', $9)
-       ON CONFLICT (email) DO UPDATE SET username = EXCLUDED.username`,
+       ON CONFLICT (email) DO UPDATE SET username = EXCLUDED.username, nom = EXCLUDED.nom, prenom = EXCLUDED.prenom`,
       [u.id, u.email, u.username, u.nom, u.prenom, u.role, u.cc_groupe, hashPwd(u.password), new Date().toISOString()]
     );
   }

@@ -68,6 +68,19 @@ export const api = USE_MOCK ? mockApi : {
   createDepense:   (data)   => post('/depenses', data),
   deleteDepense:   (id)     => del(`/depenses/${id}`),
 
+  // Comptabilité (module complet)
+  comptaOverview:          ()      => get('/comptabilite/dashboard'),
+  comptaVentesAnalyse:     ()      => get('/comptabilite/ventes-analyse'),
+  comptaPaiements:         (q = '') => get(`/comptabilite/paiements${q}`),
+  createComptaPaiement:    (data)  => post('/comptabilite/paiements', data),
+  updateComptaPaiement:    (id, data) => patch(`/comptabilite/paiements/${id}`, data),
+  deleteComptaPaiement:    (id)    => del(`/comptabilite/paiements/${id}`),
+  comptaCommissions:       (q = '') => get(`/comptabilite/commissions${q}`),
+  createComptaCommission:  (data)  => post('/comptabilite/commissions', data),
+  updateComptaCommission:  (id, data) => patch(`/comptabilite/commissions/${id}`, data),
+  deleteComptaCommission:  (id)    => del(`/comptabilite/commissions/${id}`),
+  comptaAnalyseProduits:   ()      => get('/comptabilite/analyse-produits'),
+
   // Utilisateurs du dashboard
   dashboardUsers:       ()     => get('/dashboard-users'),
   createDashboardUser:  (data) => post('/dashboard-users', data),

@@ -21,7 +21,7 @@ const dataUrl = (file) => `${base}data/${file}`;
 // Utilisateurs par défaut (mot de passe en clair pour le mode démo)
 const SEED_USERS = [
   { id: 'usr_ceo',    email: 'ceo@facilitar.cm',       nom: 'Directeur', prenom: 'Général', role: 'ceo',         cc_groupe: null, password: 'Admin1234',  created_at: '2026-01-01T00:00:00Z' },
-  { id: 'usr_co',     email: 'comptable@facilitar.cm',  nom: 'Nguema',    prenom: 'Sophie',  role: 'comptable',   cc_groupe: null, password: 'Compta1234', created_at: '2026-01-01T00:00:00Z' },
+  { id: 'usr_co',     email: 'comptable@facilitar.cm',  username: 'comptable', nom: 'Fotso',     prenom: 'Hermann', role: 'comptable',   cc_groupe: null, password: 'Compta1234', created_at: '2026-01-01T00:00:00Z' },
   { id: 'usr_cc1',    email: 'cc1@facilitar.cm',        nom: 'Mvondo',    prenom: 'Paul',    role: 'call_center', cc_groupe: 1,    password: 'CC1234',     created_at: '2026-01-01T00:00:00Z' },
   { id: 'usr_cc2',    email: 'cc2@facilitar.cm',        nom: 'Abena',     prenom: 'Alice',   role: 'call_center', cc_groupe: 2,    password: 'CC1234',     created_at: '2026-01-01T00:00:00Z' },
   { id: 'usr_mkt',    email: 'marketing@facilitar.cm',  nom: 'Nkeng',     prenom: 'Bruno',   role: 'marketing',   cc_groupe: null, password: 'Mkt1234',    created_at: '2026-01-01T00:00:00Z' },
@@ -165,11 +165,12 @@ async function importData({ orders, revendeurOrders, ventes, products, profiles,
 export const mockApi = {
 
   // Auth
-  login(email, password) {
+  login(usernameOrEmail, password) {
     const users = S.read('dusers');
-    const user = users.find(u => u.email === email.toLowerCase().trim());
+    const val = usernameOrEmail.toLowerCase().trim();
+    const user = users.find(u => u.email === val || (u.username || '').toLowerCase() === val);
     if (!user || user.password !== password)
-      return ok({ ok: false, error: 'Email ou mot de passe incorrect' });
+      return ok({ ok: false, error: 'Pseudonyme ou mot de passe incorrect' });
     const { password: _, ...safeUser } = user;
     return ok({ ok: true, user: safeUser });
   },

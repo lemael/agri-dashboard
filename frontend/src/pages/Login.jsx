@@ -18,6 +18,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dataReady, setDataReady] = useState(() => !!localStorage.getItem('fac_data_loaded'));
@@ -94,17 +95,31 @@ export default function Login() {
             <label style={{ fontSize: 13, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 6 }}>
               Mot de passe
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              style={{
-                width: '100%', padding: '10px 14px', borderRadius: 8, fontSize: 14,
-                border: '1px solid #dee2e6', outline: 'none', boxSizing: 'border-box',
-              }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{
+                  width: '100%', padding: '10px 42px 10px 14px', borderRadius: 8, fontSize: 14,
+                  border: '1px solid #dee2e6', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd(v => !v)}
+                style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  fontSize: 18, color: '#636e72', lineHeight: 1,
+                }}
+                title={showPwd ? 'Masquer' : 'Afficher'}
+              >
+                {showPwd ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           {error && (

@@ -18,6 +18,7 @@ app.use('/api/stats', require('./routes/stats'));
 app.use('/api/import', require('./routes/importData'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/depenses', require('./routes/depenses'));
+app.use('/api/comptabilite', require('./routes/comptabilite'));
 app.use('/api/dashboard-users', require('./routes/dashboardUsers'));
 app.use('/api/call-center', require('./routes/callCenter'));
 
