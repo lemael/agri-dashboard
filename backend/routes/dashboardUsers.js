@@ -101,12 +101,26 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', async (req, res) => {
   try {
-    const { password, role, cc_groupe } = req.body;
+    const { password, role, cc_groupe, secteur_principal, telephone } = req.body;
     if (password) {
       await pool.query('UPDATE dashboard_users SET password_hash = $1 WHERE id = $2', [hash(password), req.params.id]);
     }
     if (role !== undefined) {
       await pool.query('UPDATE dashboard_users SET role = $1, cc_groupe = $2 WHERE id = $3', [role, cc_groupe || null, req.params.id]);
+    }
+    if (telephone !== undefined) {
+      await pool.query('UPDATE dashboard_users SET telephone = $1 WHERE id = $2', [telephone || null, req.params.id]);
+    }
+    if (secteur_principal !== undefined) {
+      // Upsert secteur_principal in cc_profiles (keyed by email)
+      const { rows } = await pool.query('SELECT email FROM dashboard_users WHERE id = $1', [req.params.id]);
+      if (rows.length && rows[0].email) {
+        await pool.query(
+          `INSERT INTO cc_profiles (email, secteur_principal) VALUES ($1, $2)
+           ON CONFLICT (email) DO UPDATE SET secteur_principal = EXCLUDED.secteur_principal`,
+          [rows[0].email, secteur_principal || null]
+        );
+      }
     }
     res.json({ ok: true });
   } catch (err) {

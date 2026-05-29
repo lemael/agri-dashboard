@@ -172,7 +172,7 @@ async function initDB() {
 
   // Seed default dashboard users
   const seedUsers = [
-    { id: 'usr_ceo',       email: 'ceo@facilitar.cm',        username: 'ceo',        nom: 'Directeur',  prenom: 'Général', role: 'ceo',         cc_groupe: null, password: 'Admin1234'  },
+    { id: 'usr_ceo',       email: 'ceo@facilitar.cm',        username: 'ceo',        nom: 'Fosso',      prenom: 'Mael',    role: 'ceo',         cc_groupe: null, password: 'Admin1234'  },
     { id: 'usr_compta',    email: 'comptable@facilitar.cm',   username: 'comptable',  nom: 'Fotso',      prenom: 'Hermann', role: 'comptable',   cc_groupe: null, password: 'Compta1234' },
     { id: 'usr_cc1',       email: 'cc1@facilitar.cm',         username: 'cc1',        nom: 'Mvondo',     prenom: 'Paul',    role: 'call_center', cc_groupe: 1,    password: 'CC1234'     },
     { id: 'usr_cc2',       email: 'cc2@facilitar.cm',         username: 'cc2',        nom: 'Abena',      prenom: 'Alice',   role: 'call_center', cc_groupe: 2,    password: 'CC1234'     },

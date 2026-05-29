@@ -112,8 +112,20 @@ export default function Dashboard() {
                   <div style={{ fontSize: 12, color: '#636e72', marginTop: 2 }}>
                     ✉️ {u.email}{u.telephone ? ` · 📞 ${u.telephone}` : ''}
                   </div>
-                  <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
-                    Inscrit le {new Date(u.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    {u.role === 'call_center_1' && (
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#e8f5e9', color: '#2e7d32' }}>
+                        📦 Grossiste
+                      </span>
+                    )}
+                    {u.role === 'call_center_2' && (
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#e3f2fd', color: '#1565c0' }}>
+                        🛒 Revendeur
+                      </span>
+                    )}
+                    <span style={{ fontSize: 11, color: '#aaa' }}>
+                      Inscrit le {new Date(u.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>

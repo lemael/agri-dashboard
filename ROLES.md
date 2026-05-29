@@ -4,7 +4,7 @@ Ce document décrit les rôles disponibles sur la plateforme Facilitar, leurs ac
 
 ---
 
-## 👑 CEO (Directeur Général)
+## 👑 CEO (Mael Fosso)
 
 **Accès : total — toutes les pages de la plateforme**
 

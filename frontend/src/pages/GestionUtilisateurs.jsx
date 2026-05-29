@@ -18,6 +18,15 @@ const ROLE_COLORS = {
 };
 
 const empty = { username: '', email: '', nom: '', prenom: '', role: '', cc_groupe: '', password: '' };
+const emptyEdit = { cc_groupe: '', secteur_principal: '', telephone: '' };
+
+const SECTEURS = [
+  'Alimentaire',
+  'Cosmétique',
+  'Vêtements',
+  'Appareils électroniques',
+  'Accessoires maison',
+];
 
 export default function GestionUtilisateurs() {
   const [users, setUsers] = useState(null);
@@ -25,6 +34,9 @@ export default function GestionUtilisateurs() {
   const [form, setForm] = useState(empty);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [editUser, setEditUser] = useState(null);   // user being edited
+  const [editForm, setEditForm] = useState(emptyEdit);
+  const [editSaving, setEditSaving] = useState(false);
 
   const load = () => api.dashboardUsers().then(setUsers);
   useEffect(() => { load(); }, []);
@@ -49,6 +61,29 @@ export default function GestionUtilisateurs() {
   const handleDelete = async (id, email) => {
     if (!window.confirm(`Supprimer l'utilisateur ${email} ?`)) return;
     await api.deleteDashboardUser(id);
+    load();
+  };
+
+  const openEdit = (u) => {
+    setEditUser(u);
+    setEditForm({
+      cc_groupe: u.cc_groupe != null ? String(u.cc_groupe) : '',
+      secteur_principal: u.secteur_principal || '',
+      telephone: u.telephone || '',
+    });
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    setEditSaving(true);
+    await api.updateDashboardUser(editUser.id, {
+      role: editUser.role,
+      cc_groupe: editForm.cc_groupe || null,
+      secteur_principal: editForm.secteur_principal || null,
+      telephone: editForm.telephone || null,
+    });
+    setEditUser(null);
+    setEditSaving(false);
     load();
   };
 
@@ -123,6 +158,72 @@ export default function GestionUtilisateurs() {
       {!users ? (
         <div style={{ color: '#636e72' }}>Chargement…</div>
       ) : (
+        <>
+        {/* ── Modal édition ── */}
+        {editUser && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          }}>
+            <form onSubmit={handleEdit} style={{
+              background: '#fff', borderRadius: 14, padding: 28, width: 380, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1e3a2f' }}>
+                  ✏️ Modifier — {editUser.prenom} {editUser.nom}
+                </h3>
+                <button type="button" onClick={() => setEditUser(null)}
+                  style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#aaa' }}>✕</button>
+              </div>
+
+              {editUser.role === 'call_center' && (
+                <div style={{ marginBottom: 16 }}>
+                  <label style={labelStyle}>Groupe (Grossiste ou Revendeur)</label>
+                  <select value={editForm.cc_groupe} onChange={e => setEditForm(f => ({ ...f, cc_groupe: e.target.value }))} style={inputStyle}>
+                    <option value="">— Non assigné —</option>
+                    <option value="1">📦 Groupe 1 — Grossiste</option>
+                    <option value="2">🛒 Groupe 2 — Revendeur</option>
+                  </select>
+                </div>
+              )}
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>Numéro de téléphone</label>
+                <input
+                  type="tel"
+                  value={editForm.telephone}
+                  onChange={e => setEditForm(f => ({ ...f, telephone: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="ex: +237 6XX XXX XXX"
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Secteur commercial</label>
+                <select
+                  value={editForm.secteur_principal}
+                  onChange={e => setEditForm(f => ({ ...f, secteur_principal: e.target.value }))}
+                  style={inputStyle}
+                >
+                  <option value="">— Choisir un secteur —</option>
+                  {SECTEURS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setEditUser(null)}
+                  style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #dee2e6', background: '#fff', cursor: 'pointer', fontSize: 13 }}>
+                  Annuler
+                </button>
+                <button type="submit" disabled={editSaving}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#1e3a2f', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                  {editSaving ? 'Enregistrement…' : '💾 Enregistrer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,.08)' }}>
             <thead>
@@ -150,7 +251,8 @@ export default function GestionUtilisateurs() {
                       <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
                         <span style={{ padding: '1px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600, background: rc.bg, color: rc.color }}>
                           {ROLES.find(r => r.value === u.role)?.label || u.role}
-                          {u.role === 'call_center' && u.cc_groupe ? ` G${u.cc_groupe}` : ''}
+                          {u.role === 'call_center' && String(u.cc_groupe) === '1' ? ' — Grossiste' : ''}
+                          {u.role === 'call_center' && String(u.cc_groupe) === '2' ? ' — Revendeur' : ''}
                         </span>
                       </div>
                     </td>
@@ -158,6 +260,8 @@ export default function GestionUtilisateurs() {
                     <td style={tdStyle}>
                       <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: rc.bg, color: rc.color }}>
                         {ROLES.find(r => r.value === u.role)?.label || u.role}
+                        {u.role === 'call_center' && String(u.cc_groupe) === '1' ? ' — Grossiste' : ''}
+                        {u.role === 'call_center' && String(u.cc_groupe) === '2' ? ' — Revendeur' : ''}
                       </span>
                     </td>
                     <td style={tdStyle}>{u.telephone || '—'}</td>
@@ -181,9 +285,14 @@ export default function GestionUtilisateurs() {
                       </span>
                     </td>
                     <td style={tdStyle}>
-                      <button onClick={() => handleDelete(u.id, u.username || u.email)} style={{ padding: '3px 8px', borderRadius: 6, background: '#f8d7da', border: 'none', color: '#721c24', fontSize: 12 }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => openEdit(u)} style={{ padding: '3px 8px', borderRadius: 6, background: '#e8f4fd', border: 'none', color: '#1565c0', fontSize: 12, cursor: 'pointer' }}>
+                        ✏️ Modifier
+                      </button>
+                      <button onClick={() => handleDelete(u.id, u.username || u.email)} style={{ padding: '3px 8px', borderRadius: 6, background: '#f8d7da', border: 'none', color: '#721c24', fontSize: 12, cursor: 'pointer' }}>
                         Supprimer
                       </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -191,6 +300,7 @@ export default function GestionUtilisateurs() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );
