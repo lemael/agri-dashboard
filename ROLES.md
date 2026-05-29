@@ -8,8 +8,6 @@ Ce document décrit les rôles disponibles sur la plateforme Facilitar, leurs ac
 
 **Accès : total — toutes les pages de la plateforme**
 
-| Email | ceo@facilitar.cm |
-
 ### Responsabilités
 - Supervise l'ensemble des activités commerciales et financières
 - Valide ou rejette les nouveaux comptes utilisateurs (agents Call Center, etc.)
@@ -34,10 +32,6 @@ Ce document décrit les rôles disponibles sur la plateforme Facilitar, leurs ac
 ## 📊 Comptable
 
 **Accès : Dashboard + Module Comptabilité**
-
-| Nom | Hermann Fotso |
-|---|---|
-| Email | comptable@facilitar.cm |
 
 ### Responsabilités
 
@@ -93,8 +87,6 @@ Le comptable est le **garant financier et commercial** de la plateforme. Son rô
 
 **Accès : Dashboard + Producteurs + Produits + Commandes Grossiste**
 
-| Email | cc1@facilitar.cm |
-
 ### Responsabilités
 Les agents Call Center Groupe 1 gèrent la relation avec les **grossistes** (acheteurs en gros).
 
@@ -124,8 +116,6 @@ Les agents Call Center Groupe 1 gèrent la relation avec les **grossistes** (ach
 
 **Accès : Dashboard + Ventes + Commandes Revendeur**
 
-| Email | cc2@facilitar.cm |
-
 ### Responsabilités
 Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (détaillants, marchés locaux).
 
@@ -150,8 +140,6 @@ Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (dé
 
 **Accès : Dashboard + Produits + Producteurs + Ventes**
 
-| Email | marketing@facilitar.cm |
-
 ### Responsabilités
 - Consulte le catalogue produits et les producteurs pour préparer les campagnes
 - Analyse les ventes disponibles pour orienter les actions marketing
@@ -162,8 +150,6 @@ Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (dé
 ## 👥 RH (Ressources Humaines)
 
 **Accès : Dashboard + Gestion des utilisateurs**
-
-| Email | rh@facilitar.cm |
 
 ### Responsabilités
 - Gère les comptes utilisateurs de la plateforme
@@ -194,4 +180,4 @@ Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (dé
 URL locale : `http://localhost:5173`  
 URL production : déployée sur Railway
 
-Tous les comptes utilisent un **pseudonyme** (pas d'email) pour se connecter.
+Les comptes sont gérés par l'administrateur de la plateforme.
