@@ -84,6 +84,12 @@ export const api = USE_MOCK ? mockApi : {
   updateComptaCommission:  (id, data) => patch(`/comptabilite/commissions/${id}`, data),
   deleteComptaCommission:  (id)    => del(`/comptabilite/commissions/${id}`),
   comptaAnalyseProduits:   ()      => get('/comptabilite/analyse-produits'),
+  // Suivi des ventes (cœur du comptable)
+  suiviVentes:             (q = '') => get(`/comptabilite/suivi-ventes${q}`),
+  createSuiviVente:        (data)  => post('/comptabilite/suivi-ventes', data),
+  updateSuiviVente:        (id, data) => put(`/comptabilite/suivi-ventes/${id}`, data),
+  deleteSuiviVente:        (id)    => del(`/comptabilite/suivi-ventes/${id}`),
+  importSuiviVentes:       ()      => post('/comptabilite/suivi-ventes/import', {}),
 
   // Utilisateurs du dashboard
   dashboardUsers:       ()     => get('/dashboard-users'),
@@ -111,6 +117,9 @@ export const api = USE_MOCK ? mockApi : {
 
   // Produits des grossistes (pour CC Revendeur)
   grossisteProduits: ()       => get('/call-center/grossiste-produits'),
+
+  // Listes pour Comptabilité
+  ccAllClients: (groupe) => get(`/call-center/all-clients${groupe != null ? '?groupe=' + groupe : ''}`),
 
   // Historique des prix
   prixHistory:     ()       => get('/call-center/prix-history'),

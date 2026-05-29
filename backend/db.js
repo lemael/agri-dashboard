@@ -180,6 +180,25 @@ async function initDB() {
       nouveau_prix NUMERIC,
       changed_at TEXT DEFAULT now()
     );
+
+    CREATE TABLE IF NOT EXISTS compta_suivi_ventes (
+      id TEXT PRIMARY KEY,
+      order_ref TEXT,
+      date_vente TEXT,
+      grossiste TEXT,
+      revendeur TEXT,
+      agent_responsable TEXT,
+      produit TEXT,
+      quantite NUMERIC DEFAULT 0,
+      prix_unitaire NUMERIC DEFAULT 0,
+      reduction NUMERIC DEFAULT 0,
+      cout_unitaire NUMERIC DEFAULT 0,
+      statut_paiement TEXT DEFAULT 'en_attente',
+      statut_livraison TEXT DEFAULT 'en_attente',
+      notes TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT now()
+    );
   `);
 
   // Add status column if not exists (migration)

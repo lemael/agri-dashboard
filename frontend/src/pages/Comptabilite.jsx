@@ -28,6 +28,18 @@ const STATUTS_COMMISSION = [
   { value: 'validé',     label: 'Validé',     color: '#2196f3' },
   { value: 'payé',       label: 'Payé',       color: '#4caf50' },
 ];
+const STATUTS_LIVRAISON = [
+  { value: 'en_attente', label: 'En attente', color: '#ff9800' },
+  { value: 'en_transit', label: 'En transit', color: '#2196f3' },
+  { value: 'livré',      label: 'Livré',      color: '#4caf50' },
+  { value: 'retourné',   label: 'Retourné',   color: '#f44336' },
+];
+const EMPTY_VENTE = {
+  order_ref: '', date_vente: new Date().toISOString().slice(0, 10),
+  grossiste: '', revendeur: '', agent_responsable: '', produit: '',
+  quantite: '', prix_unitaire: '', reduction: '0', cout_unitaire: '0',
+  statut_paiement: 'en_attente', statut_livraison: 'en_attente', notes: '',
+};
 
 const TABS = [
   { id: 'overview',    label: "📊 Vue d'ensemble" },
@@ -37,14 +49,18 @@ const TABS = [
   { id: 'produits',    label: '📈 Analyse produits' },
   { id: 'promotions',  label: '🎁 Promotions' },
   { id: 'depenses',    label: '📝 Dépenses' },
+  { id: 'revendeurs',  label: '🛒 Revendeurs' },
+  { id: 'grossistes',  label: '🏪 Grossistes' },
+  { id: 'agents_cc',   label: '📞 Agents CC' },
 ];
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const fmt         = (n) => new Intl.NumberFormat('fr-FR').format(Math.round(n || 0)) + ' FCFA';
 const catLabel    = (v) => DEP_CATEGORIES.find(c => c.value === v)?.label || v;
 const catColor    = (v) => DEP_CATEGORIES.find(c => c.value === v)?.color || '#636e72';
-const statPaie    = (v) => STATUTS_PAIEMENT.find(s => s.value === v)   || { label: v, color: '#636e72' };
-const statComm    = (v) => STATUTS_COMMISSION.find(s => s.value === v) || { label: v, color: '#636e72' };
+const statPaie    = (v) => STATUTS_PAIEMENT.find(s => s.value === v)   || { label: v || '—', color: '#636e72' };
+const statComm    = (v) => STATUTS_COMMISSION.find(s => s.value === v) || { label: v || '—', color: '#636e72' };
+const statLivr    = (v) => STATUTS_LIVRAISON.find(s => s.value === v)  || { label: v || '—', color: '#636e72' };
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────
 const labelStyle = { fontSize: 12, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 5 };
@@ -178,81 +194,253 @@ function TabOverview() {
 }
 
 // ─── TAB 2 : SUIVI DES VENTES ─────────────────────────────────────────────────
-function TabVentes() {
-  const [data, setData] = useState(null);
-  const [view, setView] = useState('grossiste');
-  useEffect(() => { api.comptaVentesAnalyse().then(setData).catch(console.error); }, []);
-  if (!data) return <Spinner />;
+// ─── TAB 2 : SUIVI DES VENTES ─────────────────────────────────────────────────
+function TabSuiviVentes() {
+  const { user } = useAuth();
+  const [rows, setRows]             = useState(null);
+  const [filterPaie, setFilterPaie] = useState('');
+  const [filterLivr, setFilterLivr] = useState('');
+  const [formOpen, setFormOpen]     = useState(false);
+  const [editRow, setEditRow]       = useState(null);
+  const [form, setForm]             = useState(EMPTY_VENTE);
+  const [saving, setSaving]         = useState(false);
+  const [importing, setImporting]   = useState(false);
+  const [importMsg, setImportMsg]   = useState('');
+
+  const load = useCallback(() => {
+    const params = new URLSearchParams();
+    if (filterPaie) params.set('statut_paiement',  filterPaie);
+    if (filterLivr) params.set('statut_livraison', filterLivr);
+    const q = params.toString() ? '?' + params.toString() : '';
+    api.suiviVentes(q).then(setRows).catch(console.error);
+  }, [filterPaie, filterLivr]);
+
+  useEffect(load, [load]);
+
+  const montant = (r) => parseFloat(r.prix_unitaire || 0) * parseFloat(r.quantite || 0) - parseFloat(r.reduction || 0);
+  const marge   = (r) => (parseFloat(r.prix_unitaire || 0) - parseFloat(r.cout_unitaire || 0)) * parseFloat(r.quantite || 0) - parseFloat(r.reduction || 0);
+
+  const totalCA    = rows?.reduce((s, r) => s + montant(r), 0) || 0;
+  const totalMarge = rows?.reduce((s, r) => s + marge(r), 0) || 0;
+  const nbLivres   = rows?.filter(r => r.statut_livraison === 'livré').length || 0;
+  const nbAttenteP = rows?.filter(r => r.statut_paiement  === 'en_attente').length || 0;
+
+  const openAdd  = () => { setEditRow(null);  setForm({ ...EMPTY_VENTE, date_vente: new Date().toISOString().slice(0,10) }); setFormOpen(true); };
+  const openEdit = (r) => {
+    setEditRow(r);
+    setForm({ ...r, quantite: String(r.quantite || ''), prix_unitaire: String(r.prix_unitaire || ''), reduction: String(r.reduction || '0'), cout_unitaire: String(r.cout_unitaire || '0') });
+    setFormOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (editRow) { await api.updateSuiviVente(editRow.id, { ...form }); }
+      else         { await api.createSuiviVente({ ...form, created_by: user?.email }); }
+      setFormOpen(false); setEditRow(null); load();
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Retirer cette vente du suivi ?')) return;
+    await api.deleteSuiviVente(id); load();
+  };
+
+  const handleImport = async () => {
+    setImporting(true); setImportMsg('');
+    try {
+      const r = await api.importSuiviVentes();
+      setImportMsg(r.imported === 0 ? 'Tout est déjà à jour.' : `${r.imported} vente(s) importée(s).`);
+      load();
+    } catch { setImportMsg('Erreur lors de l\'import.'); }
+    setImporting(false);
+  };
+
+  const updateStatus = async (id, field, value) => {
+    await api.updateSuiviVente(id, { [field]: value });
+    setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const fVal = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+  const prevMontant = parseFloat(form.prix_unitaire || 0) * parseFloat(form.quantite || 0) - parseFloat(form.reduction || 0);
+  const prevMarge   = (parseFloat(form.prix_unitaire || 0) - parseFloat(form.cout_unitaire || 0)) * parseFloat(form.quantite || 0) - parseFloat(form.reduction || 0);
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {[['grossiste', '👥 Par grossiste'], ['ville', '📍 Par ville'], ['produit', '🌿 Par produit'], ['agents', '🧑 Agents CC']].map(([v, l]) => (
-          <button key={v} onClick={() => setView(v)} style={{
-            padding: '6px 14px', borderRadius: 20, border: '1px solid #dee2e6',
-            fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            background: view === v ? '#1e3a2f' : '#fff',
-            color:      view === v ? '#fff'    : '#495057',
-          }}>{l}</button>
-        ))}
+      {/* KPIs */}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 20 }}>
+        <StatsCard label="CA total suivi"      value={fmt(totalCA)}    color="#4caf7d" sub={`${rows?.length || 0} vente(s)`} />
+        <StatsCard label="Marge estimée"       value={fmt(totalMarge)} color={totalMarge >= 0 ? '#2196f3' : '#e53935'} sub="prix − coût × qté" />
+        <StatsCard label="Livrées"             value={nbLivres}        color="#4caf50" sub="statut livraison" />
+        <StatsCard label="Paiements en attente" value={nbAttenteP}     color="#ff9800" sub="à recouvrer" />
       </div>
 
-      {view === 'grossiste' && (
-        <TableBlock
-          title="CA par grossiste — confirmé vs en attente"
-          columns={['Grossiste', 'Commandes', 'CA confirmé', 'CA en attente', 'CA total']}
-          rows={data.parGrossiste}
-          renderRow={r => [
-            r.grossiste_email,
-            r.nb_commandes,
-            <strong style={{ color: '#4caf50' }}>{fmt(r.ca_confirme)}</strong>,
-            <span style={{ color: '#ff9800' }}>{fmt(r.ca_pending)}</span>,
-            <strong>{fmt(r.ca_total)}</strong>,
-          ]}
-        />
+      {/* Toolbar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 14 }}>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: 11, color: '#636e72', marginBottom: 5, fontWeight: 600 }}>Statut paiement</div>
+            <FilterBar options={STATUTS_PAIEMENT.map(s => ({ value: s.value, label: s.label }))} value={filterPaie} onChange={setFilterPaie} />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: '#636e72', marginBottom: 5, fontWeight: 600 }}>Statut livraison</div>
+            <FilterBar options={STATUTS_LIVRAISON.map(s => ({ value: s.value, label: s.label }))} value={filterLivr} onChange={setFilterLivr} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {importMsg && <span style={{ fontSize: 12, color: '#4caf50', fontWeight: 600 }}>{importMsg}</span>}
+          <button onClick={handleImport} disabled={importing} style={{ ...btnPrimary, background: '#2196f3' }}>
+            {importing ? '…' : '⬇️ Importer commandes CC'}
+          </button>
+          <button onClick={openAdd} style={btnPrimary}>+ Nouvelle vente</button>
+        </div>
+      </div>
+
+      {/* Formulaire Add/Edit */}
+      {formOpen && (
+        <form onSubmit={handleSubmit} style={{ ...cardStyle, border: '2px solid #1e3a2f', marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1e3a2f', margin: 0 }}>{editRow ? '✏️ Modifier la vente' : '+ Nouvelle vente'}</h3>
+            <button type="button" onClick={() => setFormOpen(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#636e72', lineHeight: 1 }}>✕</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 14 }}>
+            <div><label style={labelStyle}>Date *</label>
+              <input type="date" required value={form.date_vente} onChange={e => fVal('date_vente', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Grossiste</label>
+              <input value={form.grossiste} onChange={e => fVal('grossiste', e.target.value)} style={inputStyle} placeholder="Email ou nom" /></div>
+            <div><label style={labelStyle}>Revendeur</label>
+              <input value={form.revendeur} onChange={e => fVal('revendeur', e.target.value)} style={inputStyle} placeholder="Email ou nom" /></div>
+            <div><label style={labelStyle}>Agent responsable</label>
+              <input value={form.agent_responsable} onChange={e => fVal('agent_responsable', e.target.value)} style={inputStyle} placeholder="Email agent CC" /></div>
+            <div><label style={labelStyle}>Produit *</label>
+              <input required value={form.produit} onChange={e => fVal('produit', e.target.value)} style={inputStyle} placeholder="ex: Riz 50 kg" /></div>
+            <div><label style={labelStyle}>Quantité *</label>
+              <input type="number" min="0" required value={form.quantite} onChange={e => fVal('quantite', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Prix unitaire (FCFA) *</label>
+              <input type="number" min="0" required value={form.prix_unitaire} onChange={e => fVal('prix_unitaire', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Réduction (FCFA)</label>
+              <input type="number" min="0" value={form.reduction} onChange={e => fVal('reduction', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Coût unitaire (FCFA)</label>
+              <input type="number" min="0" value={form.cout_unitaire} onChange={e => fVal('cout_unitaire', e.target.value)} style={inputStyle} placeholder="Pour la marge" /></div>
+            <div><label style={labelStyle}>Statut paiement</label>
+              <select value={form.statut_paiement} onChange={e => fVal('statut_paiement', e.target.value)} style={inputStyle}>
+                {STATUTS_PAIEMENT.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select></div>
+            <div><label style={labelStyle}>Statut livraison</label>
+              <select value={form.statut_livraison} onChange={e => fVal('statut_livraison', e.target.value)} style={inputStyle}>
+                {STATUTS_LIVRAISON.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select></div>
+            <div><label style={labelStyle}>Notes</label>
+              <input value={form.notes} onChange={e => fVal('notes', e.target.value)} style={inputStyle} placeholder="Observations…" /></div>
+            <div><label style={labelStyle}>Réf. commande</label>
+              <input value={form.order_ref} onChange={e => fVal('order_ref', e.target.value)} style={inputStyle} placeholder="ID optionnel" /></div>
+          </div>
+          {form.prix_unitaire && form.quantite && (
+            <div style={{ marginTop: 14, padding: '10px 16px', background: '#f0faf4', borderRadius: 8, display: 'flex', gap: 28, fontSize: 13, flexWrap: 'wrap' }}>
+              <span>Montant total : <strong style={{ color: '#4caf7d' }}>{fmt(prevMontant)}</strong></span>
+              {parseFloat(form.cout_unitaire) > 0 && <span>Marge estimée : <strong style={{ color: prevMarge >= 0 ? '#2196f3' : '#e53935' }}>{fmt(prevMarge)}</strong></span>}
+            </div>
+          )}
+          <button type="submit" disabled={saving} style={{ marginTop: 16, ...btnPrimary }}>
+            {saving ? 'Enregistrement…' : editRow ? 'Mettre à jour' : 'Enregistrer'}
+          </button>
+        </form>
       )}
-      {view === 'ville' && (
-        <TableBlock
-          title="CA par ville (ventes terrain)"
-          columns={['#', 'Ville', 'Nb ventes', 'CA total']}
-          rows={data.parVille}
-          renderRow={(r, i) => [
-            i < 3 ? ['🥇','🥈','🥉'][i] : i + 1,
-            r.ville,
-            r.nb_ventes,
-            <strong style={{ color: '#4caf7d' }}>{fmt(r.ca_total)}</strong>,
-          ]}
-          emptyMsg="Aucune vente avec localisation enregistrée."
-        />
-      )}
-      {view === 'produit' && (
-        <TableBlock
-          title="Produits les plus commandés"
-          columns={['#', 'Type', 'Variété', 'Commandes', 'CA total', 'Prix moyen']}
-          rows={data.parProduit}
-          renderRow={(r, i) => [
-            i + 1,
-            r.type_produit || '—',
-            r.variete || '—',
-            r.nb_commandes,
-            <strong style={{ color: '#4caf7d' }}>{fmt(r.ca_total)}</strong>,
-            fmt(r.prix_moyen),
-          ]}
-        />
-      )}
-      {view === 'agents' && (
-        <TableBlock
-          title="Performance agents Call Center"
-          columns={['#', 'Agent (email)', 'Nb clients gérés']}
-          rows={data.agentsPerf}
-          renderRow={(r, i) => [
-            i < 3 ? ['🥇','🥈','🥉'][i] : i + 1,
-            r.agent_email,
-            <strong>{r.nb_clients}</strong>,
-          ]}
-          emptyMsg="Aucun profil Call Center enregistré."
-        />
-      )}
+
+      {/* Tableau principal */}
+      {!rows ? <Spinner /> : rows.length === 0
+        ? (
+          <div style={{ ...cardStyle, color: '#636e72', fontSize: 13, textAlign: 'center', padding: 32 }}>
+            Aucune vente dans le suivi.<br />
+            <span style={{ fontSize: 12, color: '#aaa' }}>Utilisez "⬇️ Importer commandes CC" ou "+ Nouvelle vente" pour commencer.</span>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={{ background: '#f8f9fa' }}>
+                  {['ID', 'Date', 'Grossiste', 'Revendeur', 'Agent', 'Produit', 'Qté', 'Prix unit.', 'Montant total', 'Réduction', 'Statut paiement', 'Statut livraison', 'Marge est.', ''].map(h => (
+                    <th key={h} style={thStyle}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(r => {
+                  const mt = montant(r);
+                  const mg = marge(r);
+                  const sp = statPaie(r.statut_paiement);
+                  const sl = statLivr(r.statut_livraison);
+                  const hasCout = parseFloat(r.cout_unitaire || 0) > 0;
+                  return (
+                    <tr key={r.id} style={{ borderBottom: '1px solid #f1f3f5' }}>
+                      <td style={{ ...tdStyle, fontSize: 11, fontFamily: 'monospace', color: '#636e72' }} title={r.id}>
+                        {r.order_ref
+                          ? <span title={`Lié à commande: ${r.order_ref}`}>{r.id.slice(-6)} <span style={{ color: '#2196f3' }}>🔗</span></span>
+                          : r.id.slice(-6)
+                        }
+                      </td>
+                      <td style={tdStyle}>{r.date_vente || '—'}</td>
+                      <td style={{ ...tdStyle, maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.grossiste}>
+                        {r.grossiste || '—'}
+                      </td>
+                      <td style={{ ...tdStyle, maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.revendeur}>
+                        {r.revendeur || '—'}
+                      </td>
+                      <td style={{ ...tdStyle, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#636e72', fontSize: 12 }} title={r.agent_responsable}>
+                        {r.agent_responsable || '—'}
+                      </td>
+                      <td style={{ ...tdStyle, fontWeight: 600 }}>{r.produit || '—'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right' }}>{r.quantite ?? '—'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: '#636e72' }}>{fmt(r.prix_unitaire)}</td>
+                      <td style={{ ...tdStyle, fontWeight: 700, color: '#1e3a2f', textAlign: 'right' }}>{fmt(mt)}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: parseFloat(r.reduction) > 0 ? '#e53935' : '#ccc', fontSize: 12 }}>
+                        {parseFloat(r.reduction) > 0 ? `−${fmt(r.reduction)}` : '—'}
+                      </td>
+                      <td style={tdStyle}>
+                        <select value={r.statut_paiement}
+                          onChange={e => updateStatus(r.id, 'statut_paiement', e.target.value)}
+                          style={{ padding: '3px 6px', borderRadius: 6, border: '1px solid #dee2e6', fontSize: 11, background: sp.color + '22', color: sp.color, fontWeight: 700, cursor: 'pointer', minWidth: 95 }}>
+                          {STATUTS_PAIEMENT.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
+                        </select>
+                      </td>
+                      <td style={tdStyle}>
+                        <select value={r.statut_livraison}
+                          onChange={e => updateStatus(r.id, 'statut_livraison', e.target.value)}
+                          style={{ padding: '3px 6px', borderRadius: 6, border: '1px solid #dee2e6', fontSize: 11, background: sl.color + '22', color: sl.color, fontWeight: 700, cursor: 'pointer', minWidth: 95 }}>
+                          {STATUTS_LIVRAISON.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
+                        </select>
+                      </td>
+                      <td style={{ ...tdStyle, fontWeight: 700, color: mg >= 0 ? '#4caf50' : '#e53935', textAlign: 'right' }}>
+                        {hasCout ? fmt(mg) : <span style={{ color: '#ccc', fontSize: 11 }}>N/A</span>}
+                      </td>
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button onClick={() => openEdit(r)} style={{ padding: '3px 8px', borderRadius: 6, background: '#e8f5e9', border: 'none', color: '#2e7d32', fontSize: 12, cursor: 'pointer' }}>✏️</button>
+                          <button onClick={() => handleDelete(r.id)} style={{ padding: '3px 8px', borderRadius: 6, background: '#f8d7da', border: 'none', color: '#721c24', fontSize: 12, cursor: 'pointer' }}>🗑️</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: '#f8f9fa', fontWeight: 700, borderTop: '2px solid #dee2e6' }}>
+                  <td colSpan={8} style={{ ...tdStyle, textAlign: 'right', color: '#495057', fontSize: 12 }}>TOTAUX ({rows.length} vente{rows.length > 1 ? 's' : ''})</td>
+                  <td style={{ ...tdStyle, color: '#1e3a2f', textAlign: 'right' }}>{fmt(totalCA)}</td>
+                  <td style={tdStyle} />
+                  <td style={tdStyle} />
+                  <td style={tdStyle} />
+                  <td style={{ ...tdStyle, color: totalMarge >= 0 ? '#4caf50' : '#e53935', textAlign: 'right' }}>
+                    {rows.some(r => parseFloat(r.cout_unitaire || 0) > 0) ? fmt(totalMarge) : '—'}
+                  </td>
+                  <td style={tdStyle} />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )
+      }
     </div>
   );
 }
@@ -792,6 +980,232 @@ function TabDepenses() {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
+// ─── TAB REVENDEURS ───────────────────────────────────────────────────────────
+function TabRevendeurs() {
+  const [rows, setRows]     = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.ccAllClients(2)
+      .then(d => setRows(d || []))
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = rows.filter(r =>
+    !search || r.nom?.toLowerCase().includes(search.toLowerCase()) ||
+    r.telephone?.includes(search) || r.adresse?.toLowerCase().includes(search.toLowerCase())
+  );
+  const unclassified = filtered.filter(r => r.cc_groupe === null || r.cc_groupe === undefined);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>🛒 Liste des revendeurs</h2>
+        <input
+          placeholder="Rechercher..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          style={{ ...inputStyle, width: 240 }}
+        />
+      </div>
+      {unclassified.length > 0 && (
+        <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: 8, padding: '10px 16px', marginBottom: 12, fontSize: 13 }}>
+          ⚠️ <strong>{unclassified.length} client(s)</strong> appartiennent à des agents dont le groupe n'a pas encore été assigné par le CEO.
+          Ces clients sont listés ici mais leur classification (Grossiste/Revendeur) n'est pas confirmée.
+        </div>
+      )}
+      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        {loading ? (
+          <p style={{ padding: 24, color: '#636e72', fontSize: 13 }}>Chargement…</p>
+        ) : (
+          <table style={tableStyle}>
+            <thead>
+              <tr style={{ background: '#f8f9fa' }}>
+                {['Nom', 'Téléphone', 'Adresse', 'Agent CC', 'Date ravitaillement', 'Prochaine date', 'Notes'].map(h => (
+                  <th key={h} style={thStyle}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: '#adb5bd' }}>Aucun revendeur trouvé</td></tr>
+              ) : filtered.map((r, i) => (
+                <tr key={r.id} style={{ background: i % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>{r.nom}</td>
+                  <td style={tdStyle}>{r.telephone || '—'}</td>
+                  <td style={tdStyle}>{r.adresse || '—'}</td>
+                  <td style={tdStyle}>
+                    {r.agent_prenom} {r.agent_nom}
+                    {(r.cc_groupe === null || r.cc_groupe === undefined) && (
+                      <span style={{ ...badge('#ff9800'), marginLeft: 6, fontSize: 10 }}>⚠️ groupe indéfini</span>
+                    )}
+                    <br /><span style={{ fontSize: 11, color: '#636e72' }}>{r.cc_email}</span>
+                  </td>
+                  <td style={tdStyle}>{r.date_ravitaillement || '—'}</td>
+                  <td style={tdStyle}>{r.prochaine_date || '—'}</td>
+                  <td style={{ ...tdStyle, maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.notes || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <p style={{ fontSize: 12, color: '#636e72', marginTop: 8 }}>{filtered.length} client(s) — dont {filtered.filter(r => r.cc_groupe === 2).length} groupe Revendeur confirmé(s)</p>
+    </div>
+  );
+}
+
+// ─── TAB GROSSISTES ───────────────────────────────────────────────────────────
+function TabGrossistes() {
+  const [rows, setRows]     = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.ccAllClients(1)
+      .then(d => setRows(d || []))
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = rows.filter(r =>
+    !search || r.nom?.toLowerCase().includes(search.toLowerCase()) ||
+    r.telephone?.includes(search) || r.adresse?.toLowerCase().includes(search.toLowerCase())
+  );
+  const unclassified = filtered.filter(r => r.cc_groupe === null || r.cc_groupe === undefined);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>🏪 Liste des grossistes</h2>
+        <input
+          placeholder="Rechercher..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          style={{ ...inputStyle, width: 240 }}
+        />
+      </div>
+      {unclassified.length > 0 && (
+        <div style={{ background: '#fff3cd', border: '1px solid #ffc107', borderRadius: 8, padding: '10px 16px', marginBottom: 12, fontSize: 13 }}>
+          ⚠️ <strong>{unclassified.length} client(s)</strong> appartiennent à des agents dont le groupe n'a pas encore été assigné par le CEO.
+          Ces clients sont listés ici mais leur classification (Grossiste/Revendeur) n'est pas confirmée.
+        </div>
+      )}
+      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        {loading ? (
+          <p style={{ padding: 24, color: '#636e72', fontSize: 13 }}>Chargement…</p>
+        ) : (
+          <table style={tableStyle}>
+            <thead>
+              <tr style={{ background: '#f8f9fa' }}>
+                {['Nom', 'Téléphone', 'Adresse', 'Agent CC', 'Date ravitaillement', 'Prochaine date', 'Notes'].map(h => (
+                  <th key={h} style={thStyle}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: '#adb5bd' }}>Aucun grossiste trouvé</td></tr>
+              ) : filtered.map((r, i) => (
+                <tr key={r.id} style={{ background: i % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>{r.nom}</td>
+                  <td style={tdStyle}>{r.telephone || '—'}</td>
+                  <td style={tdStyle}>{r.adresse || '—'}</td>
+                  <td style={tdStyle}>
+                    {r.agent_prenom} {r.agent_nom}
+                    {(r.cc_groupe === null || r.cc_groupe === undefined) && (
+                      <span style={{ ...badge('#ff9800'), marginLeft: 6, fontSize: 10 }}>⚠️ groupe indéfini</span>
+                    )}
+                    <br /><span style={{ fontSize: 11, color: '#636e72' }}>{r.cc_email}</span>
+                  </td>
+                  <td style={tdStyle}>{r.date_ravitaillement || '—'}</td>
+                  <td style={tdStyle}>{r.prochaine_date || '—'}</td>
+                  <td style={{ ...tdStyle, maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.notes || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <p style={{ fontSize: 12, color: '#636e72', marginTop: 8 }}>{filtered.length} client(s) — dont {filtered.filter(r => r.cc_groupe === 1).length} groupe Grossiste confirmé(s)</p>
+    </div>
+  );
+}
+
+// ─── TAB AGENTS CC ────────────────────────────────────────────────────────────
+function TabAgentsCC() {
+  const [rows, setRows]     = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.dashboardUsers()
+      .then(d => setRows((d || []).filter(u => u.role === 'call_center')))
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = rows.filter(r =>
+    !search ||
+    r.nom?.toLowerCase().includes(search.toLowerCase()) ||
+    r.prenom?.toLowerCase().includes(search.toLowerCase()) ||
+    r.email?.toLowerCase().includes(search.toLowerCase()) ||
+    r.username?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const groupeLabel = (g) => g === 1 ? '🏪 Grossiste' : g === 2 ? '🛒 Revendeur' : '—';
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>📞 Liste des agents CC</h2>
+        <input
+          placeholder="Rechercher..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          style={{ ...inputStyle, width: 240 }}
+        />
+      </div>
+      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        {loading ? (
+          <p style={{ padding: 24, color: '#636e72', fontSize: 13 }}>Chargement…</p>
+        ) : (
+          <table style={tableStyle}>
+            <thead>
+              <tr style={{ background: '#f8f9fa' }}>
+                {['Pseudonyme', 'Nom', 'Prénom', 'Email', 'Groupe', 'Statut', 'Créé le'].map(h => (
+                  <th key={h} style={thStyle}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: '#adb5bd' }}>Aucun agent CC trouvé</td></tr>
+              ) : filtered.map((r, i) => (
+                <tr key={r.id} style={{ background: i % 2 === 0 ? '#fff' : '#f8f9fa' }}>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>@{r.username}</td>
+                  <td style={tdStyle}>{r.nom || '—'}</td>
+                  <td style={tdStyle}>{r.prenom || '—'}</td>
+                  <td style={tdStyle}>{r.email}</td>
+                  <td style={tdStyle}>
+                    <span style={{ ...badge(r.cc_groupe === 1 ? '#1e3a2f' : '#2196f3') }}>{groupeLabel(r.cc_groupe)}</span>
+                  </td>
+                  <td style={tdStyle}>
+                    <span style={{ ...badge(r.status === 'active' ? '#4caf50' : '#ff9800') }}>
+                      {r.status === 'active' ? 'Actif' : r.status || '—'}
+                    </span>
+                  </td>
+                  <td style={tdStyle}>{r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <p style={{ fontSize: 12, color: '#636e72', marginTop: 8 }}>{filtered.length} agent(s) Call Center</p>
+    </div>
+  );
+}
+
 export default function Comptabilite() {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -815,12 +1229,15 @@ export default function Comptabilite() {
       </div>
 
       {activeTab === 'overview'    && <TabOverview />}
-      {activeTab === 'ventes'      && <TabVentes />}
+      {activeTab === 'ventes'      && <TabSuiviVentes />}
       {activeTab === 'paiements'   && <TabPaiements />}
       {activeTab === 'commissions' && <TabCommissions />}
       {activeTab === 'produits'    && <TabProduits />}
       {activeTab === 'promotions'  && <TabPromotions />}
       {activeTab === 'depenses'    && <TabDepenses />}
+      {activeTab === 'revendeurs'  && <TabRevendeurs />}
+      {activeTab === 'grossistes'  && <TabGrossistes />}
+      {activeTab === 'agents_cc'   && <TabAgentsCC />}
     </div>
   );
 }

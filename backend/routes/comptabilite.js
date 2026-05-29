@@ -245,4 +245,132 @@ router.get('/analyse-produits', async (req, res) => {
   }
 });
 
+// ─── SUIVI VENTES CRUD ────────────────────────────────────────────────────────
+// POST /import doit être déclaré AVANT /:id pour éviter le conflit de route
+router.post('/suivi-ventes/import', async (req, res) => {
+  try {
+    const { rows: existing } = await pool.query(
+      'SELECT order_ref FROM compta_suivi_ventes WHERE order_ref IS NOT NULL'
+    );
+    const existingRefs = new Set(existing.map(r => r.order_ref));
+
+    const { rows: orders } = await pool.query(
+      "SELECT * FROM revendeur_orders WHERE status != 'annulée' ORDER BY commande_at DESC"
+    );
+
+    let imported = 0;
+    const now = new Date().toISOString();
+    for (const o of orders) {
+      if (existingRefs.has(o.id)) continue;
+      const p = typeof o.produit === 'string' ? JSON.parse(o.produit) : (o.produit || {});
+      const id = genId();
+      await pool.query(
+        `INSERT INTO compta_suivi_ventes
+           (id, order_ref, date_vente, grossiste, revendeur, agent_responsable, produit,
+            quantite, prix_unitaire, reduction, cout_unitaire, statut_paiement, statut_livraison,
+            notes, created_by, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+        [id, o.id,
+         (o.commande_at || now).slice(0, 10),
+         p.grossiste_email || null,
+         o.revendeur_email || null,
+         p.initiated_by   || null,
+         [p.type, p.variete].filter(Boolean).join(' ') || 'Produit',
+         parseFloat(p.quantite || 0),
+         parseFloat(p.prix     || 0),
+         0, 0, 'en_attente', 'en_attente',
+         null, 'import_auto', now]
+      );
+      imported++;
+    }
+    res.json({ ok: true, imported });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/suivi-ventes', async (req, res) => {
+  try {
+    const { statut_paiement, statut_livraison } = req.query;
+    const params = [];
+    const conditions = [];
+    if (statut_paiement)  conditions.push(`statut_paiement  = $${params.push(statut_paiement)}`);
+    if (statut_livraison) conditions.push(`statut_livraison = $${params.push(statut_livraison)}`);
+    let q = 'SELECT * FROM compta_suivi_ventes';
+    if (conditions.length) q += ' WHERE ' + conditions.join(' AND ');
+    q += ' ORDER BY date_vente DESC, created_at DESC';
+    const { rows } = await pool.query(q, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/suivi-ventes', async (req, res) => {
+  try {
+    const { order_ref, date_vente, grossiste, revendeur, agent_responsable, produit,
+            quantite, prix_unitaire, reduction, cout_unitaire,
+            statut_paiement, statut_livraison, notes, created_by } = req.body;
+    if (!produit) return res.status(400).json({ error: 'produit requis' });
+    const id = genId();
+    await pool.query(
+      `INSERT INTO compta_suivi_ventes
+         (id, order_ref, date_vente, grossiste, revendeur, agent_responsable, produit,
+          quantite, prix_unitaire, reduction, cout_unitaire, statut_paiement, statut_livraison,
+          notes, created_by, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+      [id, order_ref || null,
+       date_vente || new Date().toISOString().slice(0, 10),
+       grossiste || null, revendeur || null, agent_responsable || null, produit,
+       parseFloat(quantite     || 0),
+       parseFloat(prix_unitaire|| 0),
+       parseFloat(reduction    || 0),
+       parseFloat(cout_unitaire|| 0),
+       statut_paiement  || 'en_attente',
+       statut_livraison || 'en_attente',
+       notes || null, created_by || null, new Date().toISOString()]
+    );
+    res.json({ ok: true, id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/suivi-ventes/:id', async (req, res) => {
+  try {
+    const { order_ref, date_vente, grossiste, revendeur, agent_responsable, produit,
+            quantite, prix_unitaire, reduction, cout_unitaire,
+            statut_paiement, statut_livraison, notes } = req.body;
+    await pool.query(
+      `UPDATE compta_suivi_ventes SET
+         order_ref = $1, date_vente = $2, grossiste = $3, revendeur = $4,
+         agent_responsable = $5, produit = $6,
+         quantite = $7, prix_unitaire = $8, reduction = $9, cout_unitaire = $10,
+         statut_paiement = $11, statut_livraison = $12, notes = $13
+       WHERE id = $14`,
+      [order_ref || null, date_vente,
+       grossiste || null, revendeur || null, agent_responsable || null, produit || null,
+       parseFloat(quantite     || 0),
+       parseFloat(prix_unitaire|| 0),
+       parseFloat(reduction    || 0),
+       parseFloat(cout_unitaire|| 0),
+       statut_paiement  || 'en_attente',
+       statut_livraison || 'en_attente',
+       notes || null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/suivi-ventes/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM compta_suivi_ventes WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
