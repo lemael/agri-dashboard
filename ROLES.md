@@ -8,8 +8,6 @@ Ce document décrit les rôles disponibles sur la plateforme Facilitar, leurs ac
 
 **Accès : total — toutes les pages de la plateforme**
 
-| Identifiant | `ceo` / `Admin1234` |
-|---|---|
 | Email | ceo@facilitar.cm |
 
 ### Responsabilités
@@ -37,9 +35,8 @@ Ce document décrit les rôles disponibles sur la plateforme Facilitar, leurs ac
 
 **Accès : Dashboard + Module Comptabilité**
 
-| Identifiant | `comptable` / `Compta1234` |
-|---|---|
 | Nom | Hermann Fotso |
+|---|---|
 | Email | comptable@facilitar.cm |
 
 ### Responsabilités
@@ -96,8 +93,6 @@ Le comptable est le **garant financier et commercial** de la plateforme. Son rô
 
 **Accès : Dashboard + Producteurs + Produits + Commandes Grossiste**
 
-| Identifiant | `cc1` / `CC1234` |
-|---|---|
 | Email | cc1@facilitar.cm |
 
 ### Responsabilités
@@ -129,8 +124,6 @@ Les agents Call Center Groupe 1 gèrent la relation avec les **grossistes** (ach
 
 **Accès : Dashboard + Ventes + Commandes Revendeur**
 
-| Identifiant | `cc2` / `CC1234` |
-|---|---|
 | Email | cc2@facilitar.cm |
 
 ### Responsabilités
@@ -157,8 +150,6 @@ Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (dé
 
 **Accès : Dashboard + Produits + Producteurs + Ventes**
 
-| Identifiant | `marketing` / `Mkt1234` |
-|---|---|
 | Email | marketing@facilitar.cm |
 
 ### Responsabilités
@@ -172,8 +163,6 @@ Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (dé
 
 **Accès : Dashboard + Gestion des utilisateurs**
 
-| Identifiant | `rh` / `RH1234` |
-|---|---|
 | Email | rh@facilitar.cm |
 
 ### Responsabilités
@@ -205,5 +194,4 @@ Les agents Call Center Groupe 2 gèrent la relation avec les **revendeurs** (dé
 URL locale : `http://localhost:5173`  
 URL production : déployée sur Railway
 
-Tous les comptes utilisent un **pseudonyme** (pas d'email) pour se connecter.  
-Les mots de passe listés ci-dessus sont les valeurs par défaut du seed — à changer en production.
+Tous les comptes utilisent un **pseudonyme** (pas d'email) pour se connecter.
