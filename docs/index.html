@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facilitar Dashboard — Documentation</title>
+  <style>
+    :root {
+      --green:   #16a34a;
+      --green-l: #dcfce7;
+      --green-d: #14532d;
+      --bg:      #f9fafb;
+      --card:    #ffffff;
+      --border:  #e5e7eb;
+      --text:    #111827;
+      --muted:   #6b7280;
+      --radius:  10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--green-d);
+      color: #fff;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    nav .logo { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+    nav .logo span { font-size: 1.5rem; }
+    nav ul { list-style: none; display: flex; gap: 1.5rem; }
+    nav ul a { color: #d1fae5; text-decoration: none; font-size: .9rem; transition: color .2s; }
+    nav ul a:hover { color: #fff; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--green-d) 0%, var(--green) 100%);
+      color: #fff;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+    }
+    .hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 1rem; }
+    .hero p  { font-size: 1.15rem; max-width: 620px; margin: 0 auto 2rem; opacity: .9; }
+    .badge-row { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+    .badge { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+             padding: .3rem .9rem; border-radius: 99px; font-size: .85rem; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    section { padding: 4rem 0; }
+    section:nth-child(even) { background: #f0fdf4; }
+
+    h2.section-title {
+      font-size: 1.8rem; font-weight: 700; color: var(--green-d);
+      margin-bottom: .5rem;
+    }
+    .section-sub { color: var(--muted); margin-bottom: 2.5rem; }
+
+    /* ── CARDS ── */
+    .grid { display: grid; gap: 1.25rem; }
+    .grid-2 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+    .card-icon { font-size: 2rem; margin-bottom: .75rem; }
+    .card h3  { font-size: 1.05rem; font-weight: 700; margin-bottom: .4rem; }
+    .card p   { font-size: .9rem; color: var(--muted); }
+
+    /* ── ROLES TABLE ── */
+    .roles-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse;
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    th {
+      background: var(--green-d); color: #fff;
+      padding: .75rem 1rem; text-align: left; font-size: .85rem;
+    }
+    td { padding: .65rem 1rem; border-bottom: 1px solid var(--border); font-size: .88rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f0fdf4; }
+    .check  { color: var(--green); font-weight: 700; }
+    .cross  { color: #d1d5db; }
+
+    /* ── ROLE CARDS ── */
+    .role-card {
+      border-left: 4px solid var(--green);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+    .role-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .3rem; display: flex; align-items: center; gap: .5rem; }
+    .role-card .tag {
+      display: inline-block; background: var(--green-l); color: var(--green-d);
+      font-size: .75rem; padding: .15rem .6rem; border-radius: 99px; font-weight: 600;
+    }
+    .role-card ul { margin-top: .75rem; padding-left: 1.1rem; }
+    .role-card li { font-size: .88rem; color: var(--muted); margin-bottom: .25rem; }
+
+    /* ── API ENDPOINTS ── */
+    .endpoints { display: flex; flex-direction: column; gap: .6rem; }
+    .ep {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem 1rem;
+      display: flex; align-items: center; gap: 1rem;
+      font-size: .88rem;
+    }
+    .method {
+      font-weight: 700; font-family: monospace; font-size: .8rem;
+      padding: .2rem .5rem; border-radius: 5px; min-width: 52px; text-align: center;
+    }
+    .GET    { background: #dbeafe; color: #1d4ed8; }
+    .POST   { background: #dcfce7; color: #15803d; }
+    .PATCH  { background: #fef9c3; color: #a16207; }
+    .DELETE { background: #fee2e2; color: #b91c1c; }
+    .ep code { font-family: monospace; color: var(--green-d); font-size: .9rem; }
+    .ep .desc { color: var(--muted); margin-left: auto; font-size: .82rem; }
+
+    /* ── TECH STACK ── */
+    .stack-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .stack-item .ico { font-size: 1.8rem; }
+    .stack-item h4 { font-size: .95rem; font-weight: 700; }
+    .stack-item p  { font-size: .82rem; color: var(--muted); }
+
+    /* ── ENV BOX ── */
+    .env-box {
+      background: #1e293b; color: #e2e8f0;
+      border-radius: var(--radius); padding: 1.5rem;
+      font-family: monospace; font-size: .88rem; line-height: 1.8;
+    }
+    .env-box .comment { color: #64748b; }
+    .env-box .key     { color: #7dd3fc; }
+    .env-box .val     { color: #86efac; }
+
+    /* ── STEPS ── */
+    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 1rem; }
+    .step  {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      display: flex; gap: 1.25rem; align-items: flex-start;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      background: var(--green); color: #fff;
+      font-weight: 700; border-radius: 50%;
+      min-width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+    }
+    .step h4  { font-size: .95rem; font-weight: 700; margin-bottom: .25rem; }
+    .step p, .step code { font-size: .87rem; color: var(--muted); }
+    .step code {
+      background: #f1f5f9; color: var(--green-d);
+      padding: .15rem .4rem; border-radius: 4px; font-family: monospace;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--green-d); color: #d1fae5;
+      text-align: center; padding: 2rem;
+      font-size: .85rem;
+    }
+
+    /* ── SCROLL SPY ACTIVE ── */
+    .tab-nav { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .tab-btn {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 99px; padding: .4rem 1rem; font-size: .85rem;
+      cursor: pointer; transition: all .2s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--green); color: #fff; border-color: var(--green);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="logo"><span>🌿</span> Facilitar</div>
+  <ul>
+    <li><a href="#overview">Présentation</a></li>
+    <li><a href="#roles">Rôles</a></li>
+    <li><a href="#pages">Pages</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="#start">Démarrage</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <h1>🌿 Facilitar Dashboard</h1>
+  <p>Plateforme de gestion commerciale et financière pour l'agriculture — commandes, ventes, producteurs, comptabilité et agents terrain.</p>
+  <div class="badge-row">
+    <span class="badge">React + Vite</span>
+    <span class="badge">Node.js + Express</span>
+    <span class="badge">PostgreSQL (prod)</span>
+    <span class="badge">SQLite (local)</span>
+    <span class="badge">Railway</span>
+  </div>
+</div>
+
+<!-- ── PRÉSENTATION ── -->
+<section id="overview">
+  <div class="container">
+    <h2 class="section-title">Présentation générale</h2>
+    <p class="section-sub">Facilitar est une application web multi-rôles qui centralise la gestion commerciale et financière d'une filière agricole.</p>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Commandes</h3>
+        <p>Suivi des commandes grossistes et revendeurs avec gestion des statuts en temps réel.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌾</div>
+        <h3>Ventes terrain</h3>
+        <p>Catalogue des ventes disponibles par producteur, avec prix, quantités et localisation.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👨‍🌾</div>
+        <h3>Producteurs</h3>
+        <p>Annuaire complet des producteurs avec leurs exploitations et coordonnées.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💰</div>
+        <h3>Comptabilité</h3>
+        <p>Tableau de bord financier : CA, dépenses, résultat net, paiements, commissions agents.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>Call Center</h3>
+        <p>Espace personnel pour les agents terrain : profil, liste de clients, suivi ravitaillement.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👥</div>
+        <h3>Gestion utilisateurs</h3>
+        <p>Création, validation et désactivation des comptes par le CEO et les RH.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RÔLES ── -->
+<section id="roles">
+  <div class="container">
+    <h2 class="section-title">Rôles & Accès</h2>
+    <p class="section-sub">6 rôles distincts avec des permissions granulaires selon les responsabilités.</p>
+
+    <div class="grid grid-2" style="margin-bottom:2.5rem">
+
+      <div class="role-card">
+        <h3>👑 CEO <span class="tag">Accès total</span></h3>
+        <ul>
+          <li>Supervise l'ensemble des activités</li>
+          <li>Valide / rejette les nouveaux comptes</li>
+          <li>Importe des données en masse</li>
+          <li>Accède à tous les tableaux de bord</li>
+        </ul>
+      </div>
+
+      <div class="role-card">
+        <h3>📊 Comptable <span class="tag">Finance</span></h3>
+        <ul>
+          <li>CA total, résultat net, crédits ouverts</li>
+          <li>Suivi paiements, échéances, dettes</li>
+          <li>Commissions agents, validations</li>
+          <li>Analyse produits & promotions</li>
+        </ul>
+      </div>
+
+      <div class="role-card">
+        <h3>📱 Call Center Groupe 1 <span class="tag">Grossistes</span></h3>
+        <ul>
+          <li>Commandes grossiste</li>
+          <li>Catalogue produits & producteurs</li>
+          <li>Espace personnel : clients, profil</li>
+        </ul>
+      </div>
+
+      <div class="role-card">
+        <h3>📱 Call Center Groupe 2 <span class="tag">Revendeurs</span></h3>
+        <ul>
+          <li>Commandes revendeur</li>
+          <li>Ventes terrain disponibles</li>
+          <li>Espace personnel : clients, profil</li>
+        </ul>
+      </div>
+
+      <div class="role-card">
+        <h3>🌿 Marketing <span class="tag">Analyse</span></h3>
+        <ul>
+          <li>Catalogue produits</li>
+          <li>Producteurs & ventes terrain</li>
+          <li>Préparation campagnes</li>
+        </ul>
+      </div>
+
+      <div class="role-card">
+        <h3>👥 RH <span class="tag">Utilisateurs</span></h3>
+        <ul>
+          <li>Gestion des comptes utilisateurs</li>
+          <li>Création, modification, désactivation</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tableau des accès -->
+    <h3 style="margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--green-d)">Matrice des accès</h3>
+    <div class="roles-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>CEO</th>
+            <th>Comptable</th>
+            <th>CC Grp 1</th>
+            <th>CC Grp 2</th>
+            <th>Marketing</th>
+            <th>RH</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Dashboard général</td>      <td class="check">✔</td><td class="check">✔</td><td class="check">✔</td><td class="check">✔</td><td class="check">✔</td><td class="check">✔</td></tr>
+          <tr><td>Comptabilité</td>           <td class="check">✔</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+          <tr><td>Commandes Grossiste</td>    <td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+          <tr><td>Commandes Revendeur</td>    <td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td></tr>
+          <tr><td>Ventes terrain</td>         <td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="check">✔</td><td class="check">✔</td><td class="cross">—</td></tr>
+          <tr><td>Produits</td>               <td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td></tr>
+          <tr><td>Producteurs</td>            <td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td></tr>
+          <tr><td>Gestion Utilisateurs</td>   <td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="check">✔</td></tr>
+          <tr><td>Import données</td>         <td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+          <tr><td>Mon Espace CC</td>          <td class="cross">—</td><td class="cross">—</td><td class="check">✔</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── PAGES ── -->
+<section id="pages">
+  <div class="container">
+    <h2 class="section-title">Pages & Fonctionnalités</h2>
+    <p class="section-sub">Détail de chaque module de l'application.</p>
+
+    <div class="tab-nav" id="pageTabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="compta">Comptabilité</button>
+      <button class="tab-btn" data-tab="orders">Commandes</button>
+      <button class="tab-btn" data-tab="ventes">Ventes</button>
+      <button class="tab-btn" data-tab="produits">Produits</button>
+      <button class="tab-btn" data-tab="producteurs">Producteurs</button>
+      <button class="tab-btn" data-tab="cc">Call Center</button>
+      <button class="tab-btn" data-tab="users">Utilisateurs</button>
+      <button class="tab-btn" data-tab="import">Import</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">📊</div><h3>KPIs en temps réel</h3><p>Total commandes, ventes disponibles, produits actifs, commandes en attente.</p></div>
+        <div class="card"><div class="card-icon">💵</div><h3>Chiffre d'affaires</h3><p>CA grossistes + CA revendeurs, calculé automatiquement à partir des commandes.</p></div>
+        <div class="card"><div class="card-icon">🕐</div><h3>Commandes récentes</h3><p>Dernières commandes grossiste et revendeur avec leur statut.</p></div>
+        <div class="card"><div class="card-icon">🥧</div><h3>Répartition par statut</h3><p>Graphiques de distribution : commandes et ventes par statut (en attente, livrée, annulée).</p></div>
+      </div>
+    </div>
+
+    <!-- Comptabilité -->
+    <div class="tab-content" id="tab-compta">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">🏦</div><h3>Vue financière globale</h3><p>Gains totaux, dépenses, résultat net, crédit ouvert (montants non encaissés).</p></div>
+        <div class="card"><div class="card-icon">📈</div><h3>Analyse des ventes</h3><p>Performance par grossiste, par ville, par produit. Classement CA confirmé vs en attente.</p></div>
+        <div class="card"><div class="card-icon">💳</div><h3>Paiements</h3><p>Enregistrement des paiements (grossiste / revendeur), suivi des dettes, alertes échéances dépassées.</p></div>
+        <div class="card"><div class="card-icon">🤝</div><h3>Commissions agents</h3><p>Calcul automatique (CA × taux %), workflow En attente → Validé → Payé.</p></div>
+        <div class="card"><div class="card-icon">🏷️</div><h3>Promotions</h3><p>Budget promo, ratio promo/CA, seuil d'alerte rentabilité (règle : &lt; 15–20%).</p></div>
+        <div class="card"><div class="card-icon">🧾</div><h3>Dépenses opérationnelles</h3><p>Saisie par catégorie : téléphone, taxi, assesoir, promos… avec totaux filtrables.</p></div>
+      </div>
+    </div>
+
+    <!-- Commandes -->
+    <div class="tab-content" id="tab-orders">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">🛒</div><h3>Commandes Grossiste</h3><p>Liste complète, filtres par statut et email, mise à jour statut (en attente / livrée / annulée).</p></div>
+        <div class="card"><div class="card-icon">🏪</div><h3>Commandes Revendeur</h3><p>Même structure pour les commandes revendeurs détaillants.</p></div>
+        <div class="card"><div class="card-icon">➕</div><h3>Création rapide</h3><p>Formulaire de création de commande avec sélection du produit depuis le catalogue.</p></div>
+        <div class="card"><div class="card-icon">🔄</div><h3>Suivi statut</h3><p>Mise à jour instantanée du statut de chaque commande depuis le tableau.</p></div>
+      </div>
+    </div>
+
+    <!-- Ventes -->
+    <div class="tab-content" id="tab-ventes">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">🌾</div><h3>Catalogue ventes</h3><p>Toutes les ventes disponibles par producteur : type, variété, quantité, prix, localisation.</p></div>
+        <div class="card"><div class="card-icon">📍</div><h3>Filtres avancés</h3><p>Filtrage par statut, lieu, type de produit, producteur.</p></div>
+        <div class="card"><div class="card-icon">✏️</div><h3>CRUD complet</h3><p>Ajout, modification et suppression de ventes par le CEO et les agents autorisés.</p></div>
+        <div class="card"><div class="card-icon">📊</div><h3>Statuts</h3><p>disponible / vendu / réservé — mis à jour au fil des commandes.</p></div>
+      </div>
+    </div>
+
+    <!-- Produits -->
+    <div class="tab-content" id="tab-produits">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">🥦</div><h3>Catalogue produits</h3><p>Liste des produits actifs par producteur : variété, quantité, prix, état, photos.</p></div>
+        <div class="card"><div class="card-icon">🔍</div><h3>Recherche & filtres</h3><p>Filtres par type de produit, statut (actif / sold out), producteur.</p></div>
+        <div class="card"><div class="card-icon">📷</div><h3>Photos</h3><p>Support multi-photos par produit (stockées en base en base64 / URL).</p></div>
+        <div class="card"><div class="card-icon">⚡</div><h3>Sold out</h3><p>Marquage rapide sold out depuis la liste, visible instantanément.</p></div>
+      </div>
+    </div>
+
+    <!-- Producteurs -->
+    <div class="tab-content" id="tab-producteurs">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">👨‍🌾</div><h3>Annuaire producteurs</h3><p>Nom, entreprise, exploitation, localisation, téléphone, statut actif/inactif.</p></div>
+        <div class="card"><div class="card-icon">🗺️</div><h3>Localisation</h3><p>Zone géographique de chaque producteur pour orienter les agents terrain.</p></div>
+        <div class="card"><div class="card-icon">✏️</div><h3>CRUD complet</h3><p>Création, modification, désactivation par le CEO et les agents autorisés.</p></div>
+        <div class="card"><div class="card-icon">🔗</div><h3>Lien produits</h3><p>Chaque producteur est associé à ses produits disponibles dans le catalogue.</p></div>
+      </div>
+    </div>
+
+    <!-- Call Center -->
+    <div class="tab-content" id="tab-cc">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">👤</div><h3>Profil agent</h3><p>Ville, secteur principal/secondaire, orientation commerciale, géolocalisation.</p></div>
+        <div class="card"><div class="card-icon">📋</div><h3>Liste de clients</h3><p>Clients personnels de l'agent : nom, téléphone, adresse, produits, date ravitaillement.</p></div>
+        <div class="card"><div class="card-icon">📅</div><h3>Planification</h3><p>Prochaine date de ravitaillement par client, alertes visuelles sur les clients à relancer.</p></div>
+        <div class="card"><div class="card-icon">💬</div><h3>Souhaits clients</h3><p>Enregistrement des demandes produit des clients pour anticiper les stocks.</p></div>
+        <div class="card"><div class="card-icon">📉</div><h3>Historique prix</h3><p>Suivi des évolutions de prix par grossiste pour informer les revendeurs.</p></div>
+        <div class="card"><div class="card-icon">📊</div><h3>Indicateurs terrain</h3><p>KPIs personnels : nombre de clients actifs, CA de son portefeuille.</p></div>
+      </div>
+    </div>
+
+    <!-- Utilisateurs -->
+    <div class="tab-content" id="tab-users">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">✅</div><h3>Validation comptes</h3><p>Les nouveaux agents s'inscrivent (statut "pending") — le CEO les valide ou rejette.</p></div>
+        <div class="card"><div class="card-icon">🔒</div><h3>Gestion des statuts</h3><p>active / pending / rejected — contrôle d'accès à la connexion.</p></div>
+        <div class="card"><div class="card-icon">🛡️</div><h3>Mots de passe</h3><p>Stockés hashés (SHA-256). Modification possible par l'administrateur.</p></div>
+        <div class="card"><div class="card-icon">👥</div><h3>Attribution groupes CC</h3><p>Attribution du groupe Call Center (1 = Grossistes, 2 = Revendeurs) à la création.</p></div>
+      </div>
+    </div>
+
+    <!-- Import -->
+    <div class="tab-content" id="tab-import">
+      <div class="grid grid-2">
+        <div class="card"><div class="card-icon">📂</div><h3>Import JSON</h3><p>Importation en masse de commandes, ventes, produits et producteurs via fichier JSON.</p></div>
+        <div class="card"><div class="card-icon">🔄</div><h3>Upsert intelligent</h3><p>Si un enregistrement existe (même ID), il est mis à jour. Sinon, il est créé.</p></div>
+        <div class="card"><div class="card-icon">📊</div><h3>Rapport d'import</h3><p>Résumé des lignes insérées / mises à jour / ignorées après chaque import.</p></div>
+        <div class="card"><div class="card-icon">🛡️</div><h3>Accès restreint</h3><p>Réservé exclusivement au CEO.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── API ── -->
+<section id="api">
+  <div class="container">
+    <h2 class="section-title">API REST — Endpoints</h2>
+    <p class="section-sub">Backend Express.js exposant les routes suivantes.</p>
+
+    <div class="endpoints">
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/health</code>             <span class="desc">Santé du serveur</span></div>
+
+      <div class="ep"><span class="method POST">POST</span> <code>/api/auth/login</code>          <span class="desc">Connexion (username + password)</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/auth/register</code>       <span class="desc">Inscription agent call center</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/stats</code>               <span class="desc">KPIs du dashboard général</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/orders</code>              <span class="desc">Liste commandes grossiste</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/orders</code>             <span class="desc">Créer une commande grossiste</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/orders/:id</code>       <span class="desc">Mettre à jour statut</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/revendeur-orders</code>    <span class="desc">Liste commandes revendeur</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/revendeur-orders</code>   <span class="desc">Créer commande revendeur</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/revendeur-orders/:id</code> <span class="desc">Mettre à jour statut</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/ventes</code>              <span class="desc">Catalogue ventes terrain</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/ventes</code>             <span class="desc">Ajouter une vente</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/ventes/:id</code>       <span class="desc">Modifier une vente</span></div>
+      <div class="ep"><span class="method DELETE">DELETE</span> <code>/api/ventes/:id</code>     <span class="desc">Supprimer une vente</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/products</code>            <span class="desc">Catalogue produits</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/products</code>           <span class="desc">Créer un produit</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/products/:id</code>     <span class="desc">Modifier un produit</span></div>
+      <div class="ep"><span class="method DELETE">DELETE</span> <code>/api/products/:id</code>   <span class="desc">Supprimer un produit</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/producteurs</code>         <span class="desc">Annuaire producteurs</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/producteurs</code>        <span class="desc">Ajouter un producteur</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/producteurs/:id</code>  <span class="desc">Modifier un producteur</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/depenses</code>            <span class="desc">Liste des dépenses</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/depenses</code>           <span class="desc">Enregistrer une dépense</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/comptabilite/dashboard</code>      <span class="desc">Vue financière globale</span></div>
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/comptabilite/ventes-analyse</code> <span class="desc">Analyse ventes détaillée</span></div>
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/comptabilite/paiements</code>      <span class="desc">Liste des paiements</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/comptabilite/paiements</code>     <span class="desc">Enregistrer un paiement</span></div>
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/comptabilite/commissions</code>    <span class="desc">Commissions agents</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/dashboard-users</code>     <span class="desc">Liste des utilisateurs</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/dashboard-users</code>    <span class="desc">Créer un utilisateur</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/dashboard-users/:id/status</code> <span class="desc">Valider / rejeter un compte</span></div>
+      <div class="ep"><span class="method DELETE">DELETE</span> <code>/api/dashboard-users/:id</code> <span class="desc">Supprimer un utilisateur</span></div>
+
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/call-center/profile</code>  <span class="desc">Profil agent CC</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/call-center/profile</code> <span class="desc">Créer / mettre à jour profil</span></div>
+      <div class="ep"><span class="method GET">GET</span>  <code>/api/call-center/clients</code>  <span class="desc">Liste clients de l'agent</span></div>
+      <div class="ep"><span class="method POST">POST</span> <code>/api/call-center/clients</code> <span class="desc">Ajouter un client</span></div>
+      <div class="ep"><span class="method PATCH">PATCH</span> <code>/api/call-center/clients/:id</code> <span class="desc">Modifier un client</span></div>
+
+      <div class="ep"><span class="method POST">POST</span> <code>/api/import</code>              <span class="desc">Import JSON en masse (CEO uniquement)</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STACK ── -->
+<section id="stack">
+  <div class="container">
+    <h2 class="section-title">Stack technique</h2>
+    <p class="section-sub">Architecture moderne fullstack JS avec déploiement cloud.</p>
+
+    <div class="grid grid-2">
+      <div class="stack-item">
+        <div class="ico">⚛️</div>
+        <div><h4>React 18 + Vite</h4><p>Frontend SPA, routage avec React Router, state global via Context API.</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="ico">🟩</div>
+        <div><h4>Node.js + Express</h4><p>API REST backend, middleware CORS, parsing JSON, gestion des routes par fichier.</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="ico">🐘</div>
+        <div><h4>PostgreSQL (Railway)</h4><p>Base de données de production hébergée sur Railway. Connexion via <code>DATABASE_URL</code>.</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="ico">🪶</div>
+        <div><h4>SQLite (local)</h4><p>Base locale via <code>better-sqlite3</code>. Activée automatiquement sans <code>DATABASE_URL</code>.</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="ico">🚂</div>
+        <div><h4>Railway</h4><p>Hébergement backend + base de données PostgreSQL. Déploiement auto sur push git.</p></div>
+      </div>
+      <div class="stack-item">
+        <div class="ico">🔐</div>
+        <div><h4>Authentification</h4><p>Login par pseudonyme + mot de passe hashé SHA-256. Pas de JWT — session via état React.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DÉMARRAGE ── -->
+<section id="start">
+  <div class="container">
+    <h2 class="section-title">Démarrage rapide</h2>
+    <p class="section-sub">Lancer le projet en local en quelques commandes.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;">
+      <!-- Local -->
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--green-d)">💻 En local (SQLite)</h3>
+        <div class="steps">
+          <div class="step"><div><h4>Cloner le projet</h4><p><code>git clone &lt;repo&gt; && cd agri-dashboard</code></p></div></div>
+          <div class="step"><div><h4>Installer les dépendances backend</h4><p><code>cd backend && npm install</code></p></div></div>
+          <div class="step"><div><h4>Lancer le backend</h4><p><code>npm run dev</code> — SQLite créé automatiquement</p></div></div>
+          <div class="step"><div><h4>Installer le frontend</h4><p><code>cd ../frontend && npm install</code></p></div></div>
+          <div class="step"><div><h4>Lancer le frontend</h4><p><code>npm run dev</code> → <code>http://localhost:5173</code></p></div></div>
+        </div>
+      </div>
+
+      <!-- Prod -->
+      <div>
+        <h3 style="margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--green-d)">🚂 En production (Railway)</h3>
+        <div class="steps">
+          <div class="step"><div><h4>Créer un projet Railway</h4><p>Ajouter deux services : <em>backend</em> et <em>frontend</em></p></div></div>
+          <div class="step"><div><h4>Ajouter PostgreSQL</h4><p>Railway injecte <code>DATABASE_URL</code> automatiquement</p></div></div>
+          <div class="step"><div><h4>Variables d'environnement</h4><p><code>CORS_ORIGIN</code> = URL du frontend Railway</p></div></div>
+          <div class="step"><div><h4>Pousser le code</h4><p><code>git push</code> — Railway déploie automatiquement</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comptes locaux -->
+    <h3 style="margin-bottom:1rem;font-size:1.1rem;font-weight:700;color:var(--green-d)">🔑 Comptes de test local</h3>
+    <div class="roles-table-wrap">
+      <table>
+        <thead>
+          <tr><th>Pseudonyme</th><th>Rôle</th><th>Mot de passe</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>test_ceo</code></td>       <td>CEO</td>              <td><code>test1234</code></td></tr>
+          <tr><td><code>test_compta</code></td>    <td>Comptable</td>        <td><code>test1234</code></td></tr>
+          <tr><td><code>test_cc1</code></td>       <td>Call Center Grp 1</td><td><code>test1234</code></td></tr>
+          <tr><td><code>test_cc2</code></td>       <td>Call Center Grp 2</td><td><code>test1234</code></td></tr>
+          <tr><td><code>test_marketing</code></td> <td>Marketing</td>        <td><code>test1234</code></td></tr>
+          <tr><td><code>test_rh</code></td>        <td>RH</td>              <td><code>test1234</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Variables env -->
+    <h3 style="margin:.2rem 0 1rem;font-size:1.1rem;font-weight:700;color:var(--green-d);margin-top:2rem">⚙️ Variables d'environnement</h3>
+    <div class="env-box">
+      <span class="comment"># backend/.env — laisser DATABASE_URL vide pour SQLite local</span><br>
+      <span class="key">PORT</span>=<span class="val">3001</span><br>
+      <span class="key">CORS_ORIGIN</span>=<span class="val">http://localhost:5173</span><br>
+      <span class="comment"># DATABASE_URL=postgresql://... ← décommenter pour Railway</span><br><br>
+      <span class="comment"># frontend/.env</span><br>
+      <span class="key">VITE_API_URL</span>=<span class="val">http://localhost:3001</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>🌿 Facilitar Dashboard — Documentation technique</p>
+  <p style="margin-top:.5rem;opacity:.6">Généré automatiquement • Déployé via GitHub Actions → GitHub Pages</p>
+</footer>
+
+<script>
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>
