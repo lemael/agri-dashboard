@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../db');
+const { pool, USE_SQLITE } = require('../db');
 const crypto = require('crypto');
 
 const hash = (pwd) => crypto.createHash('sha256').update(pwd).digest('hex');
@@ -11,6 +11,10 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password)
       return res.status(400).json({ error: 'Pseudonyme et mot de passe requis' });
+
+    // Bloquer les comptes de test local contre l'API de production
+    if (!USE_SQLITE && username.trim().toLowerCase().startsWith('test_'))
+      return res.status(403).json({ error: 'Compte de test non autorisé en production.' });
 
     const { rows } = await pool.query(
       `SELECT u.*,
