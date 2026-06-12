@@ -513,6 +513,9 @@ const LOCAL_TEST_USERS = [
   { id: 'test_rh',        email: 'rh@test.local',          username: 'test_rh',        nom: 'Test',  prenom: 'RH',        role: 'rh',          cc_groupe: null, password: 'test1234' },
 ];
 
+// En production (PostgreSQL), les comptes sont déjà en base — pas de seed
+const PROD_USERS = [];
+
 
 
 function seedDefaultUsers(db) {
