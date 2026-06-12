@@ -31,7 +31,8 @@ function createSQLitePool() {
   try { Database = require('better-sqlite3'); }
   catch (e) { throw new Error('better-sqlite3 not available. Set DATABASE_URL to use PostgreSQL.'); }
   const path = require('path');
-  const db = new Database(path.join(__dirname, 'local.db'));
+  const dbPath = process.env.SQLITE_PATH || path.join(__dirname, 'local.db');
+  const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 

@@ -55,10 +55,18 @@ router.get('/pending-count', async (req, res) => {
 // PATCH /:id/validate — approve
 router.patch('/:id/validate', async (req, res) => {
   try {
-    await pool.query(
-      `UPDATE dashboard_users SET status = 'active' WHERE id = $1`,
-      [req.params.id]
-    );
+    const { cc_groupe } = req.body;
+    if (cc_groupe !== undefined) {
+      await pool.query(
+        `UPDATE dashboard_users SET status = 'active', cc_groupe = $2 WHERE id = $1`,
+        [req.params.id, cc_groupe]
+      );
+    } else {
+      await pool.query(
+        `UPDATE dashboard_users SET status = 'active' WHERE id = $1`,
+        [req.params.id]
+      );
+    }
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

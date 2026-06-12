@@ -261,17 +261,14 @@ router.get('/grossiste-produits', async (req, res) => {
 });
 
 // GET /api/call-center/all-clients?groupe=1|2  — liste pour Comptabilité
-// Inclut aussi les agents dont cc_groupe IS NULL (non encore assigné par le CEO)
 router.get('/all-clients', async (req, res) => {
   try {
     const { groupe } = req.query;
-    // When groupe is given: show exact groupe matches + unclassified (cc_groupe IS NULL)
-    // When no groupe: show all clients
     const params = [];
     let where = '';
     if (groupe) {
       params.push(parseInt(groupe));
-      where = 'WHERE (u.cc_groupe = $1 OR u.cc_groupe IS NULL)';
+      where = 'WHERE u.cc_groupe = $1';
     }
     const { rows } = await pool.query(
       `SELECT c.id, c.nom, c.telephone, c.adresse, c.notes,

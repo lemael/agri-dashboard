@@ -10,6 +10,18 @@ const EMPTY_CLIENT = {
 export default function CallCenterDashboard() {
   const { user } = useAuth();
   const isGrossiste = Number(user?.cc_groupe) === 1;
+
+  // Agent sans groupe assigné — afficher un écran d'attente
+  if (user?.role === 'call_center' && !user?.cc_groupe) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h2>⏳ En attente d'assignation</h2>
+        <p>Votre compte est actif mais votre groupe (Grossiste / Revendeur) n'a pas encore été assigné par le CEO.</p>
+        <p>Veuillez contacter votre responsable.</p>
+      </div>
+    );
+  }
+
   const [tab, setTab]           = useState('tendances');
   const [trends, setTrends]     = useState(null);
   const [clients, setClients]   = useState([]);
