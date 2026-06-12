@@ -27,7 +27,9 @@ function pgToSqlite(sql) {
 
 // ─── SQLite pool adapter ──────────────────────────────────────────────────────
 function createSQLitePool() {
-  const Database = require('better-sqlite3');
+  let Database;
+  try { Database = require('better-sqlite3'); }
+  catch (e) { throw new Error('better-sqlite3 not available. Set DATABASE_URL to use PostgreSQL.'); }
   const path = require('path');
   const db = new Database(path.join(__dirname, 'local.db'));
   db.pragma('journal_mode = WAL');
