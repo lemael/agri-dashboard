@@ -130,4 +130,14 @@ export const api = USE_MOCK ? mockApi : {
   createPlanning:  (data)   => post('/planning', data),
   updatePlanning:  (id, data) => patch(`/planning/${id}`, data),
   deletePlanning:  (id)     => del(`/planning/${id}`),
+
+  // Trésorerie (comptable)
+  tresoEntrees:         (mois) => get(`/tresorerie/entrees${mois ? '?mois=' + encodeURIComponent(mois) : ''}`),
+  createTresoEntree:    (data) => post('/tresorerie/entrees', data),
+  deleteTresoEntree:    (id)   => del(`/tresorerie/entrees/${id}`),
+  tresoAffectations:    (mois) => get(`/tresorerie/affectations${mois ? '?mois=' + encodeURIComponent(mois) : ''}`),
+  createTresoAffectation: (data) => post('/tresorerie/affectations', data),
+  updateTresoAffectation: (id, data) => patch(`/tresorerie/affectations/${id}`, data),
+  deleteTresoAffectation: (id) => del(`/tresorerie/affectations/${id}`),
+  tresoResume:          (mois) => get(`/tresorerie/resume?mois=${encodeURIComponent(mois)}`),
 };

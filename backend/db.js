@@ -278,6 +278,26 @@ async function initSQLite() {
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS tresorerie_entrees (
+      id TEXT PRIMARY KEY,
+      mois TEXT NOT NULL,
+      montant REAL NOT NULL,
+      description TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS tresorerie_affectations (
+      id TEXT PRIMARY KEY,
+      mois TEXT NOT NULL,
+      categorie TEXT NOT NULL,
+      montant REAL NOT NULL,
+      description TEXT,
+      beneficiaire TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 
   seedDefaultUsers(db);
@@ -496,6 +516,28 @@ async function initPostgres() {
       created_by TEXT,
       created_at TEXT DEFAULT NOW()::text,
       updated_at TEXT DEFAULT NOW()::text
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tresorerie_entrees (
+      id TEXT PRIMARY KEY,
+      mois TEXT NOT NULL,
+      montant NUMERIC NOT NULL,
+      description TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT NOW()::text
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tresorerie_affectations (
+      id TEXT PRIMARY KEY,
+      mois TEXT NOT NULL,
+      categorie TEXT NOT NULL,
+      montant NUMERIC NOT NULL,
+      description TEXT,
+      beneficiaire TEXT,
+      created_by TEXT,
+      created_at TEXT DEFAULT NOW()::text
     )
   `);
 

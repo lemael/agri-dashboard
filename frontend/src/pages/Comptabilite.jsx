@@ -52,6 +52,7 @@ const TABS = [
   { id: 'revendeurs',  label: '🛒 Revendeurs' },
   { id: 'grossistes',  label: '🏪 Grossistes' },
   { id: 'agents_cc',   label: '📞 Agents CC' },
+  { id: 'tresorerie',  label: '🏦 Trésorerie' },
   { id: 'planning',    label: '📅 Planning' },
 ];
 
@@ -1207,6 +1208,234 @@ function TabAgentsCC() {
   );
 }
 
+// ─── TAB TRÉSORERIE ──────────────────────────────────────────────────────────
+const TRESO_CATEGORIES = [
+  { value: 'promo_reduction',     label: '🎁 Promo / Réduction prix grossistes',         color: '#e91e63' },
+  { value: 'campagne_inscription',label: '📋 Campagne enregistrement revendeurs/grossistes', color: '#9c27b0' },
+  { value: 'abonnement',          label: '💳 Frais abonnement revendeurs/grossistes',     color: '#2196f3' },
+  { value: 'salaire_cc_revendeur',label: '👤 Salaire agents CC Revendeur',                color: '#00897b' },
+  { value: 'salaire_cc_grossiste',label: '👤 Salaire agents CC Grossiste',                color: '#ff9800' },
+  { value: 'autre',               label: '📦 Autre',                                      color: '#636e72' },
+];
+
+const EMPTY_ENTREE     = { montant: '', description: '' };
+const EMPTY_AFFECT     = { categorie: 'promo_reduction', montant: '', description: '', beneficiaire: '' };
+
+function TabTresorerie() {
+  const { user } = useAuth();
+  const today    = new Date();
+  const initMois = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const [mois, setMois]               = useState(initMois);
+  const [resume, setResume]           = useState(null);
+  const [entrees, setEntrees]         = useState([]);
+  const [affectations, setAffectations] = useState([]);
+  const [showFormEntree, setShowFormEntree]   = useState(false);
+  const [showFormAffect, setShowFormAffect]   = useState(false);
+  const [formEntree, setFormEntree]   = useState(EMPTY_ENTREE);
+  const [formAffect, setFormAffect]   = useState(EMPTY_AFFECT);
+  const [editAffect, setEditAffect]   = useState(null);
+  const [saving, setSaving]           = useState(false);
+
+  const shiftMois = (d) => {
+    const [y, m] = mois.split('-').map(Number);
+    const dt = new Date(y, m - 1 + d, 1);
+    setMois(`${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`);
+  };
+  const moisLabel = new Date(mois + '-15').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+  const load = () => {
+    api.tresoResume(mois).then(setResume).catch(console.error);
+    api.tresoEntrees(mois).then(setEntrees).catch(console.error);
+    api.tresoAffectations(mois).then(setAffectations).catch(console.error);
+  };
+  useEffect(() => { load(); }, [mois]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAddEntree = async (e) => {
+    e.preventDefault(); setSaving(true);
+    try {
+      await api.createTresoEntree({ ...formEntree, mois, created_by: user?.username || user?.email });
+      setShowFormEntree(false); setFormEntree(EMPTY_ENTREE); load();
+    } finally { setSaving(false); }
+  };
+
+  const handleDeleteEntree = async (id) => {
+    if (!window.confirm('Supprimer cette entrée ?')) return;
+    await api.deleteTresoEntree(id); load();
+  };
+
+  const handleAddAffect = async (e) => {
+    e.preventDefault(); setSaving(true);
+    try {
+      if (editAffect) {
+        await api.updateTresoAffectation(editAffect.id, formAffect);
+      } else {
+        await api.createTresoAffectation({ ...formAffect, mois, created_by: user?.username || user?.email });
+      }
+      setShowFormAffect(false); setEditAffect(null); setFormAffect(EMPTY_AFFECT); load();
+    } finally { setSaving(false); }
+  };
+
+  const handleDeleteAffect = async (id) => {
+    if (!window.confirm('Supprimer cette affectation ?')) return;
+    await api.deleteTresoAffectation(id); load();
+  };
+
+  const catInfo = (v) => TRESO_CATEGORIES.find(c => c.value === v) || { label: v, color: '#636e72' };
+  const pct = (montant) => resume?.totalEntrees > 0 ? ((parseFloat(montant) / resume.totalEntrees) * 100).toFixed(1) : 0;
+
+  return (
+    <div>
+      {/* ── Navigation mois ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => shiftMois(-1)} style={{ ...btnPrimary, padding: '6px 14px' }}>‹</button>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1e3a2f', minWidth: 160, textAlign: 'center', textTransform: 'capitalize' }}>{moisLabel}</span>
+          <button onClick={() => shiftMois(+1)} style={{ ...btnPrimary, padding: '6px 14px' }}>›</button>
+        </div>
+      </div>
+
+      {/* ── KPI résumé ── */}
+      {resume && (
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
+          <StatsCard label="💰 Total reçu" value={fmt(resume.totalEntrees)} color="#4caf50" sub="argent confié au comptable" />
+          <StatsCard label="📤 Total affecté" value={fmt(resume.totalAffectations)} color="#2196f3" sub="réparti par catégorie" />
+          <StatsCard label="🏦 Solde disponible" value={fmt(resume.solde)} color={resume.solde >= 0 ? '#4caf7d' : '#f44336'} sub={resume.solde >= 0 ? 'Disponible' : 'Dépassement !'} />
+        </div>
+      )}
+
+      {/* ── Répartition par catégorie ── */}
+      {resume?.parCategorie?.length > 0 && (
+        <div style={{ ...cardStyle, marginBottom: 24 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: '#1e3a2f' }}>📊 Répartition des affectations</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {resume.parCategorie.map(r => {
+              const cat = catInfo(r.categorie);
+              const p = parseFloat(pct(r.total));
+              return (
+                <div key={r.categorie}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: 13 }}>
+                    <span style={{ fontWeight: 600, color: cat.color }}>{cat.label}</span>
+                    <span style={{ fontWeight: 700 }}>{fmt(r.total)} <span style={{ color: '#adb5bd', fontWeight: 400 }}>({p}%)</span></span>
+                  </div>
+                  <div style={{ height: 8, background: '#f1f3f5', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${Math.min(p, 100)}%`, background: cat.color, borderRadius: 4, transition: 'width .3s' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        {/* ── Entrées ── */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1e3a2f', margin: 0 }}>💰 Argent reçu</h3>
+            <button onClick={() => setShowFormEntree(v => !v)} style={btnPrimary}>+ Ajouter</button>
+          </div>
+
+          {showFormEntree && (
+            <form onSubmit={handleAddEntree} style={{ ...cardStyle, marginBottom: 12 }}>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelStyle}>Montant (FCFA) *</label>
+                <input style={inputStyle} type="number" min="0" value={formEntree.montant} onChange={e => setFormEntree(f => ({ ...f, montant: e.target.value }))} required placeholder="Ex: 500000" />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={labelStyle}>Description</label>
+                <input style={inputStyle} value={formEntree.description} onChange={e => setFormEntree(f => ({ ...f, description: e.target.value }))} placeholder="Source, remarque…" />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="submit" disabled={saving} style={btnPrimary}>{saving ? '…' : 'Enregistrer'}</button>
+                <button type="button" onClick={() => setShowFormEntree(false)} style={{ ...btnPrimary, background: '#f1f3f5', color: '#495057' }}>Annuler</button>
+              </div>
+            </form>
+          )}
+
+          <div style={cardStyle}>
+            {entrees.length === 0
+              ? <div style={{ color: '#adb5bd', fontSize: 13 }}>Aucune entrée pour ce mois.</div>
+              : entrees.map(e => (
+                <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f1f3f5' }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#4caf50' }}>+{fmt(e.montant)}</div>
+                    {e.description && <div style={{ fontSize: 12, color: '#636e72' }}>{e.description}</div>}
+                    <div style={{ fontSize: 11, color: '#adb5bd' }}>{(e.created_at || '').slice(0, 10)} · {e.created_by || '—'}</div>
+                  </div>
+                  <button onClick={() => handleDeleteEntree(e.id)} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 12, border: '1px solid #f44336', background: '#fff5f5', color: '#f44336', cursor: 'pointer' }}>🗑</button>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        {/* ── Affectations ── */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1e3a2f', margin: 0 }}>📤 Affectations</h3>
+            <button onClick={() => { setEditAffect(null); setFormAffect(EMPTY_AFFECT); setShowFormAffect(v => !v); }} style={btnPrimary}>+ Affecter</button>
+          </div>
+
+          {showFormAffect && (
+            <form onSubmit={handleAddAffect} style={{ ...cardStyle, marginBottom: 12 }}>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelStyle}>Catégorie *</label>
+                <select style={inputStyle} value={formAffect.categorie} onChange={e => setFormAffect(f => ({ ...f, categorie: e.target.value }))}>
+                  {TRESO_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelStyle}>Montant (FCFA) *</label>
+                <input style={inputStyle} type="number" min="0" value={formAffect.montant} onChange={e => setFormAffect(f => ({ ...f, montant: e.target.value }))} required placeholder="Ex: 100000" />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={labelStyle}>Bénéficiaire</label>
+                <input style={inputStyle} value={formAffect.beneficiaire} onChange={e => setFormAffect(f => ({ ...f, beneficiaire: e.target.value }))} placeholder="Nom agent, campagne…" />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={labelStyle}>Description</label>
+                <input style={inputStyle} value={formAffect.description} onChange={e => setFormAffect(f => ({ ...f, description: e.target.value }))} placeholder="Détails…" />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="submit" disabled={saving} style={btnPrimary}>{saving ? '…' : editAffect ? 'Modifier' : 'Affecter'}</button>
+                <button type="button" onClick={() => { setShowFormAffect(false); setEditAffect(null); }} style={{ ...btnPrimary, background: '#f1f3f5', color: '#495057' }}>Annuler</button>
+              </div>
+            </form>
+          )}
+
+          <div style={cardStyle}>
+            {affectations.length === 0
+              ? <div style={{ color: '#adb5bd', fontSize: 13 }}>Aucune affectation pour ce mois.</div>
+              : affectations.map(a => {
+                const cat = catInfo(a.categorie);
+                return (
+                  <div key={a.id} style={{ padding: '10px 0', borderBottom: '1px solid #f1f3f5' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 12, background: cat.color + '22', color: cat.color }}>{cat.label}</span>
+                        </div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#e53935' }}>-{fmt(a.montant)}</div>
+                        {a.beneficiaire && <div style={{ fontSize: 12, color: '#495057' }}>→ {a.beneficiaire}</div>}
+                        {a.description  && <div style={{ fontSize: 12, color: '#636e72' }}>{a.description}</div>}
+                        <div style={{ fontSize: 11, color: '#adb5bd' }}>{(a.created_at || '').slice(0, 10)} · {a.created_by || '—'}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 5 }}>
+                        <button onClick={() => { setEditAffect(a); setFormAffect({ categorie: a.categorie, montant: String(a.montant), description: a.description || '', beneficiaire: a.beneficiaire || '' }); setShowFormAffect(true); }} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 12, border: '1px solid #6c757d', background: '#f8f9fa', color: '#6c757d', cursor: 'pointer' }}>✏️</button>
+                        <button onClick={() => handleDeleteAffect(a.id)} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 12, border: '1px solid #f44336', background: '#fff5f5', color: '#f44336', cursor: 'pointer' }}>🗑</button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── TAB PLANNING ─────────────────────────────────────────────────────────────
 const STATUTS_PLANNING = [
   { value: 'a_faire',   label: 'À faire',   color: '#ff9800' },
@@ -1407,6 +1636,7 @@ export default function Comptabilite() {
       {activeTab === 'revendeurs'  && <TabRevendeurs />}
       {activeTab === 'grossistes'  && <TabGrossistes />}
       {activeTab === 'agents_cc'   && <TabAgentsCC />}
+      {activeTab === 'tresorerie'  && <TabTresorerie />}
       {activeTab === 'planning'    && <TabPlanning />}
     </div>
   );
