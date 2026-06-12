@@ -1140,7 +1140,13 @@ function ClientModal({ initial, onSave, onClose }) {
   }
 
   async function handleSave() {
-    if (!form.nom.trim()) return alert('Le nom est requis.');
+    if (!form.nom.trim())              return alert('Le nom est requis.');
+    if (!form.telephone.trim())        return alert('Le téléphone est requis.');
+    if (!form.adresse.trim())          return alert('L\'adresse est requise.');
+    if (!form.date_ravitaillement)     return alert('La date du dernier ravitaillement est requise.');
+    if (!form.prochaine_date)          return alert('La date du prochain ravitaillement est requise.');
+    if (!form.produits.length)         return alert('Ajoutez au moins un produit vendu.');
+    if (!form.notes.trim())            return alert('Les notes commerciales sont requises.');
     setSaving(true);
     await onSave(form);
     setSaving(false);
@@ -1166,19 +1172,19 @@ function ClientModal({ initial, onSave, onClose }) {
         <div style={{ display: 'grid', gap: 12 }}>
           <MField label="Nom *" value={form.nom} onChange={v => set('nom', v)} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <MField label="Téléphone" value={form.telephone} onChange={v => set('telephone', v)} type="tel" />
-            <MField label="Adresse" value={form.adresse} onChange={v => set('adresse', v)} />
+            <MField label="Téléphone *" value={form.telephone} onChange={v => set('telephone', v)} type="tel" />
+            <MField label="Adresse *" value={form.adresse} onChange={v => set('adresse', v)} />
           </div>
           <MField label="Géolocalisation (ex: lien WhatsApp)" value={form.geolocation} onChange={v => set('geolocation', v)} placeholder="https://maps.google.com/..." />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <MField label="Dernier ravitaillement" value={form.date_ravitaillement} onChange={v => set('date_ravitaillement', v)} type="date" />
-            <MField label="Prochain ravitaillement" value={form.prochaine_date} onChange={v => set('prochaine_date', v)} type="date" />
+            <MField label="Dernier ravitaillement *" value={form.date_ravitaillement} onChange={v => set('date_ravitaillement', v)} type="date" />
+            <MField label="Prochain ravitaillement *" value={form.prochaine_date} onChange={v => set('prochaine_date', v)} type="date" />
           </div>
 
           {/* Produits */}
           <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#636e72', textTransform: 'uppercase', marginBottom: 8 }}>
-              Produits vendus
+              Produits vendus *
             </div>
             {form.produits.map((p, i) => (
               <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
@@ -1202,7 +1208,7 @@ function ClientModal({ initial, onSave, onClose }) {
             </div>
           </div>
 
-          <MField label="Notes commerciales" value={form.notes} onChange={v => set('notes', v)}
+          <MField label="Notes commerciales *" value={form.notes} onChange={v => set('notes', v)}
             multiline placeholder="Observations, préférences client..." />
         </div>
 
