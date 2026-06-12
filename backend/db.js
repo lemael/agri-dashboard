@@ -264,6 +264,18 @@ async function initSQLite() {
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboard_users_username
       ON dashboard_users(username) WHERE username IS NOT NULL;
+
+    CREATE TABLE IF NOT EXISTS planning (
+      id TEXT PRIMARY KEY,
+      mois TEXT NOT NULL,
+      titre TEXT NOT NULL,
+      description TEXT,
+      statut TEXT DEFAULT 'a_faire',
+      priorite TEXT DEFAULT 'normale',
+      created_by TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 
   seedDefaultUsers(db);
@@ -460,6 +472,18 @@ async function initPostgres() {
       notes TEXT,
       created_by TEXT,
       created_at TEXT DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS planning (
+      id TEXT PRIMARY KEY,
+      mois TEXT NOT NULL,
+      titre TEXT NOT NULL,
+      description TEXT,
+      statut TEXT DEFAULT 'a_faire',
+      priorite TEXT DEFAULT 'normale',
+      created_by TEXT,
+      created_at TEXT DEFAULT now(),
+      updated_at TEXT DEFAULT now()
     );
   `);
 

@@ -124,4 +124,10 @@ export const api = USE_MOCK ? mockApi : {
   // Historique des prix
   prixHistory:     ()       => get('/call-center/prix-history'),
   addPrixHistory:  (data)   => post('/call-center/prix-history', data),
+
+  // Planning mensuel (comptable + CEO)
+  planning:        (mois)   => get(`/planning${mois ? '?mois=' + encodeURIComponent(mois) : ''}`),
+  createPlanning:  (data)   => post('/planning', data),
+  updatePlanning:  (id, data) => patch(`/planning/${id}`, data),
+  deletePlanning:  (id)     => del(`/planning/${id}`),
 };

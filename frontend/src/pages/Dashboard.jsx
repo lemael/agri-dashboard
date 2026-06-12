@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -17,6 +17,33 @@ export default function Dashboard() {
   const [validatingOrder, setValidatingOrder]   = useState(null);
   const [prixHistory, setPrixHistory]   = useState([]);
   const [showPrixHist, setShowPrixHist] = useState(false);
+
+  // Planning
+  const today = new Date();
+  const initMois = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const [planMois, setPlanMois]           = useState(initMois);
+  const [planItems, setPlanItems]         = useState(null);
+  const [planFormOpen, setPlanFormOpen]   = useState(false);
+  const [planEditItem, setPlanEditItem]   = useState(null);
+  const [planForm, setPlanForm]           = useState({ titre: '', description: '', statut: 'a_faire', priorite: 'normale' });
+  const [planSaving, setPlanSaving]       = useState(false);
+
+  const STATUTS_PLANNING = [
+    { value: 'a_faire',  label: 'À faire',  color: '#ff9800' },
+    { value: 'en_cours', label: 'En cours', color: '#2196f3' },
+    { value: 'fait',     label: 'Fait',     color: '#4caf50' },
+  ];
+  const PRIORITES_PLAN = [
+    { value: 'haute',   label: '🔴 Haute' },
+    { value: 'normale', label: '🟡 Normale' },
+    { value: 'basse',   label: '🟢 Basse' },
+  ];
+
+  const loadPlan = useCallback(() => {
+    api.planning(planMois).then(d => setPlanItems(Array.isArray(d) ? d : [])).catch(() => {});
+  }, [planMois]);
+
+  useEffect(() => { loadPlan(); }, [loadPlan]);
 
   useEffect(() => {
     api.stats().then(setStats).catch(() => setError('Impossible de contacter le serveur.'));
@@ -377,6 +404,110 @@ export default function Dashboard() {
           emptyMessage="Aucune commande"
         />
       </div>
+
+      {/* ── Planning mensuel (CEO) ── */}
+      {user?.role === 'ceo' && (
+        <div style={{ marginTop: 36 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>📅</span>
+              <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: '#1e3a2f' }}>Planning mensuel</h2>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={() => { const [y,m] = planMois.split('-').map(Number); const d = new Date(y, m-2, 1); setPlanMois(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`); }} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#1e3a2f', color: '#fff', fontSize: 13, cursor: 'pointer' }}>‹</button>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#1e3a2f', minWidth: 150, textAlign: 'center', textTransform: 'capitalize' }}>
+                {new Date(planMois + '-15').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              </span>
+              <button onClick={() => { const [y,m] = planMois.split('-').map(Number); const d = new Date(y, m, 1); setPlanMois(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`); }} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: '#1e3a2f', color: '#fff', fontSize: 13, cursor: 'pointer' }}>›</button>
+              <button onClick={() => { setPlanEditItem(null); setPlanForm({ titre: '', description: '', statut: 'a_faire', priorite: 'normale' }); setPlanFormOpen(true); }} style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: '#1e3a2f', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginLeft: 8 }}>+ Ajouter</button>
+            </div>
+          </div>
+
+          {planFormOpen && (
+            <div style={{ background: '#fff', borderRadius: 10, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,.08)', border: '1.5px solid #1e3a2f22', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#1e3a2f' }}>
+                {planEditItem ? '✏️ Modifier la tâche' : '➕ Nouvelle tâche'}
+              </h3>
+              <form onSubmit={async (e) => {
+                e.preventDefault(); setPlanSaving(true);
+                try {
+                  if (planEditItem) { await api.updatePlanning(planEditItem.id, planForm); }
+                  else { await api.createPlanning({ ...planForm, mois: planMois, created_by: user?.username || user?.email }); }
+                  setPlanFormOpen(false); setPlanEditItem(null); loadPlan();
+                } finally { setPlanSaving(false); }
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 4 }}>Titre *</label>
+                    <input style={{ width: '100%', padding: '8px 12px', borderRadius: 7, border: '1px solid #dee2e6', fontSize: 13, boxSizing: 'border-box' }} value={planForm.titre} onChange={e => setPlanForm(f => ({ ...f, titre: e.target.value }))} required placeholder="Ex : Révision budgétaire, Réunion équipe…" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 4 }}>Statut</label>
+                    <select style={{ width: '100%', padding: '8px 12px', borderRadius: 7, border: '1px solid #dee2e6', fontSize: 13 }} value={planForm.statut} onChange={e => setPlanForm(f => ({ ...f, statut: e.target.value }))}>
+                      {STATUTS_PLANNING.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 4 }}>Priorité</label>
+                    <select style={{ width: '100%', padding: '8px 12px', borderRadius: 7, border: '1px solid #dee2e6', fontSize: 13 }} value={planForm.priorite} onChange={e => setPlanForm(f => ({ ...f, priorite: e.target.value }))}>
+                      {PRIORITES_PLAN.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#495057', display: 'block', marginBottom: 4 }}>Description</label>
+                    <textarea style={{ width: '100%', padding: '8px 12px', borderRadius: 7, border: '1px solid #dee2e6', fontSize: 13, minHeight: 60, resize: 'vertical', boxSizing: 'border-box' }} value={planForm.description} onChange={e => setPlanForm(f => ({ ...f, description: e.target.value }))} placeholder="Détails, remarques…" />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button type="submit" disabled={planSaving} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#1e3a2f', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{planSaving ? '…' : planEditItem ? 'Enregistrer' : 'Ajouter'}</button>
+                  <button type="button" onClick={() => { setPlanFormOpen(false); setPlanEditItem(null); }} style={{ padding: '8px 18px', borderRadius: 8, border: 'none', background: '#f1f3f5', color: '#495057', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Annuler</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {planItems === null ? (
+            <div style={{ color: '#636e72', fontSize: 13 }}>Chargement…</div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+              {STATUTS_PLANNING.map(s => {
+                const grp = planItems.filter(i => i.statut === s.value);
+                return (
+                  <div key={s.value} style={{ background: '#f8f9fa', borderRadius: 10, padding: 14, minHeight: 100 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.label}</span>
+                      <span style={{ fontSize: 12, background: s.color + '22', color: s.color, borderRadius: 12, padding: '1px 8px', fontWeight: 700 }}>{grp.length}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {grp.length === 0 && <div style={{ fontSize: 12, color: '#adb5bd', textAlign: 'center', padding: '8px 0' }}>Aucune tâche</div>}
+                      {grp.map(item => {
+                        const prio = PRIORITES_PLAN.find(p => p.value === item.priorite) || PRIORITES_PLAN[1];
+                        return (
+                          <div key={item.id} style={{ background: '#fff', borderRadius: 8, padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,.06)', border: `1.5px solid ${s.color}33` }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: '#1e3a2f', flex: 1 }}>{item.titre}</div>
+                              <span style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{prio.label}</span>
+                            </div>
+                            {item.description && <div style={{ fontSize: 12, color: '#636e72', marginTop: 5, lineHeight: 1.4 }}>{item.description}</div>}
+                            <div style={{ fontSize: 11, color: '#adb5bd', marginTop: 5 }}>Par {item.created_by || '—'} · {(item.updated_at || item.created_at || '').slice(0, 10)}</div>
+                            <div style={{ display: 'flex', gap: 4, marginTop: 8, flexWrap: 'wrap' }}>
+                              {STATUTS_PLANNING.filter(st => st.value !== item.statut).map(st => (
+                                <button key={st.value} onClick={async () => { await api.updatePlanning(item.id, { statut: st.value }); loadPlan(); }} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12, border: `1px solid ${st.color}`, background: st.color + '15', color: st.color, cursor: 'pointer', fontWeight: 600 }}>→ {st.label}</button>
+                              ))}
+                              <button onClick={() => { setPlanEditItem(item); setPlanForm({ titre: item.titre, description: item.description || '', statut: item.statut, priorite: item.priorite }); setPlanFormOpen(true); }} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12, border: '1px solid #6c757d', background: '#f8f9fa', color: '#6c757d', cursor: 'pointer' }}>✏️</button>
+                              <button onClick={async () => { if (!window.confirm('Supprimer cette tâche ?')) return; await api.deletePlanning(item.id); loadPlan(); }} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12, border: '1px solid #f44336', background: '#fff5f5', color: '#f44336', cursor: 'pointer' }}>🗑</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

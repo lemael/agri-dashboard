@@ -21,6 +21,7 @@ app.use('/api/depenses', require('./routes/depenses'));
 app.use('/api/comptabilite', require('./routes/comptabilite'));
 app.use('/api/dashboard-users', require('./routes/dashboardUsers'));
 app.use('/api/call-center', require('./routes/callCenter'));
+app.use('/api/planning',   require('./routes/planning'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

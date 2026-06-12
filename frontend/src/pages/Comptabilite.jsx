@@ -52,6 +52,7 @@ const TABS = [
   { id: 'revendeurs',  label: '🛒 Revendeurs' },
   { id: 'grossistes',  label: '🏪 Grossistes' },
   { id: 'agents_cc',   label: '📞 Agents CC' },
+  { id: 'planning',    label: '📅 Planning' },
 ];
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
@@ -1206,6 +1207,174 @@ function TabAgentsCC() {
   );
 }
 
+// ─── TAB PLANNING ─────────────────────────────────────────────────────────────
+const STATUTS_PLANNING = [
+  { value: 'a_faire',   label: 'À faire',   color: '#ff9800' },
+  { value: 'en_cours',  label: 'En cours',  color: '#2196f3' },
+  { value: 'fait',      label: 'Fait',      color: '#4caf50' },
+];
+const PRIORITES = [
+  { value: 'haute',    label: '🔴 Haute' },
+  { value: 'normale',  label: '🟡 Normale' },
+  { value: 'basse',    label: '🟢 Basse' },
+];
+
+const EMPTY_TASK = { titre: '', description: '', statut: 'a_faire', priorite: 'normale' };
+
+function TabPlanning() {
+  const { user } = useAuth();
+  const today    = new Date();
+  const initMois = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const [mois, setMois]         = useState(initMois);
+  const [items, setItems]       = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [form, setForm]         = useState(EMPTY_TASK);
+  const [saving, setSaving]     = useState(false);
+
+  const load = () => api.planning(mois).then(setItems).catch(console.error);
+  useEffect(() => { load(); }, [mois]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openAdd  = () => { setEditItem(null); setForm(EMPTY_TASK); setFormOpen(true); };
+  const openEdit = (item) => { setEditItem(item); setForm({ titre: item.titre, description: item.description || '', statut: item.statut, priorite: item.priorite }); setFormOpen(true); };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (editItem) {
+        await api.updatePlanning(editItem.id, form);
+      } else {
+        await api.createPlanning({ ...form, mois, created_by: user?.username || user?.email });
+      }
+      setFormOpen(false); setEditItem(null); load();
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Supprimer cette tâche ?')) return;
+    await api.deletePlanning(id); load();
+  };
+
+  const handleStatut = async (item, statut) => {
+    await api.updatePlanning(item.id, { statut });
+    load();
+  };
+
+  const statPlan = (v) => STATUTS_PLANNING.find(s => s.value === v) || { label: v, color: '#636e72' };
+
+  // Navigation mois
+  const shiftMois = (delta) => {
+    const [y, m] = mois.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setMois(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  };
+
+  const moisLabel = new Date(mois + '-15').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+  const grouped = STATUTS_PLANNING.reduce((acc, s) => {
+    acc[s.value] = (items || []).filter(i => i.statut === s.value);
+    return acc;
+  }, {});
+
+  return (
+    <div>
+      {/* ── En-tête navigation mois ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => shiftMois(-1)} style={{ ...btnPrimary, padding: '6px 14px' }}>‹</button>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1e3a2f', textTransform: 'capitalize', minWidth: 160, textAlign: 'center' }}>{moisLabel}</span>
+          <button onClick={() => shiftMois(+1)} style={{ ...btnPrimary, padding: '6px 14px' }}>›</button>
+        </div>
+        <button onClick={openAdd} style={btnPrimary}>+ Ajouter une tâche</button>
+      </div>
+
+      {/* ── Formulaire ajout/edit ── */}
+      {formOpen && (
+        <div style={{ ...cardStyle, border: '1.5px solid #1e3a2f22', marginBottom: 24 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: '#1e3a2f' }}>
+            {editItem ? '✏️ Modifier la tâche' : '➕ Nouvelle tâche — ' + moisLabel}
+          </h3>
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Titre *</label>
+                <input style={inputStyle} value={form.titre} onChange={e => setForm(f => ({ ...f, titre: e.target.value }))} required placeholder="Ex : Clôture des comptes, Déclaration TVA…" />
+              </div>
+              <div>
+                <label style={labelStyle}>Statut</label>
+                <select style={inputStyle} value={form.statut} onChange={e => setForm(f => ({ ...f, statut: e.target.value }))}>
+                  {STATUTS_PLANNING.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Priorité</label>
+                <select style={inputStyle} value={form.priorite} onChange={e => setForm(f => ({ ...f, priorite: e.target.value }))}>
+                  {PRIORITES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>Description</label>
+                <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Détails, étapes, remarques…" />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="submit" disabled={saving} style={btnPrimary}>{saving ? 'Enregistrement…' : editItem ? 'Enregistrer' : 'Ajouter'}</button>
+              <button type="button" onClick={() => { setFormOpen(false); setEditItem(null); }} style={{ ...btnPrimary, background: '#f1f3f5', color: '#495057' }}>Annuler</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ── Kanban par statut ── */}
+      {items === null ? <Spinner /> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {STATUTS_PLANNING.map(s => (
+            <div key={s.value} style={{ background: '#f8f9fa', borderRadius: 10, padding: 16, minHeight: 120 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.label}</span>
+                <span style={{ fontSize: 12, background: s.color + '22', color: s.color, borderRadius: 12, padding: '1px 8px', fontWeight: 700 }}>{grouped[s.value].length}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {grouped[s.value].length === 0 && (
+                  <div style={{ fontSize: 12, color: '#adb5bd', textAlign: 'center', padding: '12px 0' }}>Aucune tâche</div>
+                )}
+                {grouped[s.value].map(item => {
+                  const prio = PRIORITES.find(p => p.value === item.priorite) || PRIORITES[1];
+                  return (
+                    <div key={item.id} style={{ background: '#fff', borderRadius: 8, padding: '12px 14px', boxShadow: '0 1px 3px rgba(0,0,0,.07)', border: `1.5px solid ${s.color}33` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#1e3a2f', lineHeight: 1.3, flex: 1 }}>{item.titre}</div>
+                        <span style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{prio.label}</span>
+                      </div>
+                      {item.description && (
+                        <div style={{ fontSize: 12, color: '#636e72', marginTop: 6, lineHeight: 1.4 }}>{item.description}</div>
+                      )}
+                      <div style={{ fontSize: 11, color: '#adb5bd', marginTop: 6 }}>
+                        Par {item.created_by || '—'} · {(item.updated_at || item.created_at || '').slice(0, 10)}
+                      </div>
+                      {/* Actions rapides statut */}
+                      <div style={{ display: 'flex', gap: 5, marginTop: 10, flexWrap: 'wrap' }}>
+                        {STATUTS_PLANNING.filter(st => st.value !== item.statut).map(st => (
+                          <button key={st.value} onClick={() => handleStatut(item, st.value)} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 12, border: `1px solid ${st.color}`, background: st.color + '15', color: st.color, cursor: 'pointer', fontWeight: 600 }}>
+                            → {st.label}
+                          </button>
+                        ))}
+                        <button onClick={() => openEdit(item)} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 12, border: '1px solid #6c757d', background: '#f8f9fa', color: '#6c757d', cursor: 'pointer' }}>✏️</button>
+                        <button onClick={() => handleDelete(item.id)} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 12, border: '1px solid #f44336', background: '#fff5f5', color: '#f44336', cursor: 'pointer' }}>🗑</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Comptabilite() {
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -1238,6 +1407,7 @@ export default function Comptabilite() {
       {activeTab === 'revendeurs'  && <TabRevendeurs />}
       {activeTab === 'grossistes'  && <TabGrossistes />}
       {activeTab === 'agents_cc'   && <TabAgentsCC />}
+      {activeTab === 'planning'    && <TabPlanning />}
     </div>
   );
 }
