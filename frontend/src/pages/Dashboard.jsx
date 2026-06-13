@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [pending, setPending] = useState([]);
   const [showPending, setShowPending] = useState(false);
   const [validating, setValidating] = useState(null);
+  const [pendingGroups, setPendingGroups] = useState({}); // { [userId]: '1' | '2' }
   const [pendingCCOrders, setPendingCCOrders]   = useState([]);
   const [showCCOrders, setShowCCOrders]         = useState(false);
   const [validatingOrder, setValidatingOrder]   = useState(null);
@@ -58,9 +59,15 @@ export default function Dashboard() {
   }, [user]);
 
   async function handleValidate(id) {
+    const cc_groupe = pendingGroups[id];
+    if (!cc_groupe) {
+      alert('Veuillez sélectionner le groupe (Grossiste ou Revendeur) avant de valider.');
+      return;
+    }
     setValidating(id);
-    await api.validateUser(id);
+    await api.validateUser(id, cc_groupe);
     setPending(p => p.filter(u => u.id !== id));
+    setPendingGroups(g => { const n = { ...g }; delete n[id]; return n; });
     setValidating(null);
   }
 
@@ -160,17 +167,16 @@ export default function Dashboard() {
                   <div style={{ fontSize: 12, color: '#636e72', marginTop: 2 }}>
                     ✉️ {u.email}{u.telephone ? ` · 📞 ${u.telephone}` : ''}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                    {u.role === 'call_center_1' && (
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#e8f5e9', color: '#2e7d32' }}>
-                        📦 Grossiste
-                      </span>
-                    )}
-                    {u.role === 'call_center_2' && (
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#e3f2fd', color: '#1565c0' }}>
-                        🛒 Revendeur
-                      </span>
-                    )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                    <select
+                      value={pendingGroups[u.id] || ''}
+                      onChange={e => setPendingGroups(g => ({ ...g, [u.id]: e.target.value }))}
+                      style={{ fontSize: 12, padding: '4px 10px', borderRadius: 6, border: '1.5px solid #ffc107', background: '#fffde7', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      <option value="">— Choisir le groupe —</option>
+                      <option value="1">📦 Groupe 1 — Grossiste</option>
+                      <option value="2">🛒 Groupe 2 — Revendeur</option>
+                    </select>
                     <span style={{ fontSize: 11, color: '#aaa' }}>
                       Inscrit le {new Date(u.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
                     </span>

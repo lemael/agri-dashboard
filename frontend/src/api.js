@@ -97,7 +97,7 @@ export const api = USE_MOCK ? mockApi : {
   deleteDashboardUser:  (id)   => del(`/dashboard-users/${id}`),
   updateDashboardUser:  (id, data) => patch(`/dashboard-users/${id}`, data),
   pendingUsers:         ()     => get('/dashboard-users/pending'),
-  validateUser:         (id)   => patch(`/dashboard-users/${id}/validate`, {}),
+  validateUser:         (id, cc_groupe)   => patch(`/dashboard-users/${id}/validate`, cc_groupe ? { cc_groupe } : {}),
   rejectUser:           (id)   => patch(`/dashboard-users/${id}/reject`, {}),
 
   // Call Center
