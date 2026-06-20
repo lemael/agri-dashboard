@@ -58,8 +58,8 @@ router.patch('/:id/validate', async (req, res) => {
     const { cc_groupe } = req.body;
     if (cc_groupe !== undefined) {
       await pool.query(
-        `UPDATE dashboard_users SET status = 'active', cc_groupe = $2 WHERE id = $1`,
-        [req.params.id, cc_groupe]
+        `UPDATE dashboard_users SET status = 'active', cc_groupe = $1 WHERE id = $2`,
+        [cc_groupe, req.params.id]
       );
     } else {
       await pool.query(

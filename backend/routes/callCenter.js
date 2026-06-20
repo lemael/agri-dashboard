@@ -226,6 +226,28 @@ router.delete('/souhaits/:id', async (req, res) => {
   }
 });
 
+// GET /api/call-center/grossiste-clients — full client list from CC Grossiste agents (cc_groupe=1)
+router.get('/grossiste-clients', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT c.id, c.nom, c.telephone, c.adresse, c.geolocation,
+              c.produits, c.date_ravitaillement, c.prochaine_date, c.notes,
+              c.cc_email, u.prenom AS agent_prenom, u.nom AS agent_nom
+       FROM cc_clients c
+       JOIN dashboard_users u ON u.email = c.cc_email
+       WHERE u.cc_groupe = 1
+       ORDER BY c.created_at DESC`
+    );
+    const clients = rows.map(r => ({
+      ...r,
+      produits: r.produits ? JSON.parse(r.produits) : [],
+    }));
+    res.json(clients);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/call-center/grossiste-produits — all products from CC Grossiste clients
 router.get('/grossiste-produits', async (req, res) => {
   try {

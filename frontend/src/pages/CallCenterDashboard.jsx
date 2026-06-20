@@ -53,8 +53,8 @@ export default function CallCenterDashboard() {
   const [souhaitEdits, setSouhaitEdits]         = useState({});  // { id: { quantite, notes } }
   const [souhaitEditSaving, setSouhaitEditSaving] = useState(null); // id en cours de sauvegarde
 
-  // Produits disponibles (CC Revendeur) — stock des grossistes
-  const [grossisteProduits, setGrossisteProduits] = useState([]);
+  // Grossistes (CC Revendeur) — clients ajoutés par CC Grossiste
+  const [grossisteClients, setGrossisteClients]   = useState([]);
 
   // Formulaire "Débuter une vente" (CC Revendeur)
   const [venteClient, setVenteClient]   = useState('');
@@ -110,8 +110,8 @@ export default function CallCenterDashboard() {
     // Card 2 'produits': Revendeur → grossiste products; Grossiste → souhaits revendeurs (read-only)
     if (card === 'produits' && !isGrossiste) {
       setDetailLoading(true);
-      const data = await api.grossisteProduits().catch(() => []);
-      setGrossisteProduits(Array.isArray(data) ? data : []);
+      const clients = await api.grossisteClients().catch(() => []);
+      setGrossisteClients(Array.isArray(clients) ? clients : []);
       setDetailLoading(false);
     }
     // Card 3 'ventes': Grossiste → orders pending confirmation; Revendeur → form
@@ -580,31 +580,61 @@ export default function CallCenterDashboard() {
                   </div>
                 ) : (
                   <div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: 15, color: '#1e3a2f' }}>✅ Produits disponibles</h3>
+                    <h3 style={{ margin: '0 0 6px', fontSize: 15, color: '#1e3a2f' }}>✅ Grossistes disponibles</h3>
                     <p style={{ margin: '0 0 16px', fontSize: 12, color: '#636e72' }}>
-                      Stock enregistré par les agents CC Grossiste — lecture seule.
+                      Liste des clients grossistes enregistrés par les agents CC Grossiste — lecture seule.
                     </p>
-                    {grossisteProduits.length === 0
-                      ? <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>Aucun produit disponible enregistré par les CC Grossistes.</div>
-                      : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                          <thead><tr style={{ background: '#f8f9fa' }}>
-                            {['Grossiste', 'Produit', 'Type', 'Quantité', 'Prix', 'Notes'].map(h => <th key={h} style={detTh}>{h}</th>)}
-                          </tr></thead>
-                          <tbody>
-                            {grossisteProduits.map((p, i) => (
-                              <tr key={`${p.grossiste_id}_${p.prod_idx}_${i}`} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                                <td style={{ ...detTd, fontWeight: 700 }}>{p.grossiste_nom || '—'}</td>
-                                <td style={detTd}>{p.nom || '—'}</td>
-                                <td style={{ ...detTd, color: '#636e72' }}>{p.type || '—'}</td>
-                                <td style={detTd}>{p.quantite || '—'}</td>
-                                <td style={{ ...detTd, fontWeight: 700, color: '#2e7d32' }}>
-                                  {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
-                                </td>
-                                <td style={{ ...detTd, color: '#636e72' }}>{p.notes || '—'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                    {grossisteClients.length === 0
+                      ? <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>Aucun grossiste enregistré par les CC Grossistes.</div>
+                      : <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          {grossisteClients.map(g => (
+                            <div key={g.id} style={{
+                              border: '1.5px solid #e8f5e9', borderRadius: 12, padding: '14px 16px',
+                              background: '#f9fffe',
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                                <div style={{ fontWeight: 700, fontSize: 15, color: '#1e3a2f' }}>{g.nom}</div>
+                                <div style={{ fontSize: 11, color: '#888' }}>
+                                  Agent : {g.agent_prenom || g.agent_nom || g.cc_email?.split('@')[0] || '—'}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 12, color: '#555', marginBottom: g.produits?.length ? 10 : 0 }}>
+                                {g.telephone && <span>📞 {g.telephone}</span>}
+                                {g.adresse && <span>📍 {g.adresse}</span>}
+                                {g.date_ravitaillement && <span>📅 Dernier ravit. : {g.date_ravitaillement}</span>}
+                                {g.prochaine_date && <span>🔜 Prochain : {g.prochaine_date}</span>}
+                                {g.notes && <span style={{ color: '#636e72', fontStyle: 'italic' }}>💬 {g.notes}</span>}
+                              </div>
+                              {g.produits?.length > 0 && (
+                                <div style={{ marginTop: 6 }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: '#4caf7d', textTransform: 'uppercase', marginBottom: 6 }}>
+                                    Produits ({g.produits.length})
+                                  </div>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                                    <thead>
+                                      <tr style={{ background: '#f0faf4' }}>
+                                        {['Produit', 'Quantité restante', 'Prix'].map(h => (
+                                          <th key={h} style={{ ...detTh, fontSize: 11, padding: '4px 8px' }}>{h}</th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {g.produits.map((p, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                          <td style={{ ...detTd, fontWeight: 600, padding: '4px 8px' }}>{p.nom || '—'}</td>
+                                          <td style={{ ...detTd, padding: '4px 8px' }}>{p.quantite ?? '—'}</td>
+                                          <td style={{ ...detTd, color: '#2e7d32', fontWeight: 700, padding: '4px 8px' }}>
+                                            {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                     }
                   </div>
                 )

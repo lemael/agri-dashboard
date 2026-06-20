@@ -116,7 +116,9 @@ export const api = USE_MOCK ? mockApi : {
   ccDeleteSouhait:   (id)     => del(`/call-center/souhaits/${id}`),
 
   // Produits des grossistes (pour CC Revendeur)
-  grossisteProduits: ()       => get('/call-center/grossiste-produits'),
+  grossisteProduits:  ()       => get('/call-center/grossiste-produits'),
+  // Liste complète des clients grossistes (pour CC Revendeur — section Produits disponibles)
+  grossisteClients:   ()       => get('/call-center/grossiste-clients'),
 
   // Listes pour Comptabilité
   ccAllClients: (groupe) => get(`/call-center/all-clients${groupe != null ? '?groupe=' + groupe : ''}`),
