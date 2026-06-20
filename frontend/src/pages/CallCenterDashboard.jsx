@@ -78,7 +78,7 @@ export default function CallCenterDashboard() {
         api.ccClients(user.email),
         api.ccProfile(user.email).catch(() => null),
         api.ccDepenses(user.email).catch(() => []),
-        // CC Revendeur : grossistes ; CC Grossiste : revendeurs (compteur de carte)
+        // CC Revendeur : grossistes ; CC Grossiste : revendeurs (compteur de carte 2)
         isGrossiste ? api.revendeurClients().catch(() => []) : api.grossisteClients().catch(() => []),
       ]);
       setTrends(t);
@@ -106,18 +106,20 @@ export default function CallCenterDashboard() {
   async function handleCardClick(card) {
     if (selectedCard === card) { setSelectedCard(null); return; }
     setSelectedCard(card);
-    // Card 1 'souhaits': Grossiste → liste revendeurs (CC Revendeur clients); Revendeur → souhaits CRUD
+    // Card 1 'souhaits': Grossiste → stock éditables (leurs propres clients); Revendeur → souhaits CRUD
     if (card === 'souhaits' && isGrossiste) {
-      setDetailLoading(true);
-      const data = await api.revendeurClients().catch(() => []);
-      setRevendeurClients(Array.isArray(data) ? data : []);
-      setDetailLoading(false);
+      // clients déjà chargés dans loadAll, pas de fetch supplémentaire
     }
-    // Card 2 'produits': Revendeur → grossiste products; Grossiste → souhaits revendeurs (read-only)
-    if (card === 'produits' && !isGrossiste) {
+    // Card 2 'produits': Grossiste → fiches revendeurs clients; Revendeur → fiches grossistes clients
+    if (card === 'produits') {
       setDetailLoading(true);
-      const clients = await api.grossisteClients().catch(() => []);
-      setGrossisteClients(Array.isArray(clients) ? clients : []);
+      if (isGrossiste) {
+        const data = await api.revendeurClients().catch(() => []);
+        setRevendeurClients(Array.isArray(data) ? data : []);
+      } else {
+        const data = await api.grossisteClients().catch(() => []);
+        setGrossisteClients(Array.isArray(data) ? data : []);
+      }
       setDetailLoading(false);
     }
     // Card 3 'ventes': Grossiste → orders pending confirmation; Revendeur → form
@@ -370,14 +372,14 @@ export default function CallCenterDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 20 }}>
             <StatCard
               icon={isGrossiste ? '💰' : '💬'}
-              label={isGrossiste ? 'Revendeurs clients' : 'Souhaits des clients'}
-              value={isGrossiste ? revendeurClients.length : souhaits.length}
+              label={isGrossiste ? 'Stock des grossistes' : 'Souhaits des clients'}
+              value={isGrossiste ? clients.length : souhaits.length}
               color="#4caf7d"
               onClick={() => handleCardClick('souhaits')} active={selectedCard === 'souhaits'} />
             <StatCard
-              icon={isGrossiste ? '🛒' : '✅'}
-              label={isGrossiste ? 'Souhaits des revendeurs' : 'Produits disponibles'}
-              value={isGrossiste ? souhaits.length : grossisteClients.length}
+              icon={isGrossiste ? '🏪' : '✅'}
+              label={isGrossiste ? 'Revendeurs clients' : 'Produits disponibles'}
+              value={isGrossiste ? revendeurClients.length : grossisteClients.length}
               color="#2196f3"
               onClick={() => handleCardClick('produits')} active={selectedCard === 'produits'} />
             <StatCard
@@ -401,62 +403,66 @@ export default function CallCenterDashboard() {
               {!detailLoading && selectedCard === 'souhaits' && (
                 isGrossiste ? (
                   <div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: 15, color: '#1e3a2f' }}>🏪 Revendeurs clients</h3>
+                    <h3 style={{ margin: '0 0 6px', fontSize: 15, color: '#1e3a2f' }}>💰 Stock des grossistes</h3>
                     <p style={{ margin: '0 0 16px', fontSize: 12, color: '#636e72' }}>
-                      Liste des clients revendeurs enregistrés par les agents CC Revendeur — lecture seule.
+                      Prix modifiables — toute modification est enregistrée et notifiée au CEO.
                     </p>
-                    {revendeurClients.length === 0
-                      ? <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>Aucun revendeur enregistré par les CC Revendeurs.</div>
-                      : <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                          {revendeurClients.map(r => (
-                            <div key={r.id} style={{
-                              border: '1.5px solid #f3e5f5', borderRadius: 12, padding: '14px 16px',
-                              background: '#fdf8ff',
-                            }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-                                <div style={{ fontWeight: 700, fontSize: 15, color: '#1e3a2f' }}>{r.nom}</div>
-                                <div style={{ fontSize: 11, color: '#888' }}>
-                                  Agent : {r.agent_prenom || r.agent_nom || r.cc_email?.split('@')[0] || '—'}
-                                </div>
-                              </div>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 12, color: '#555', marginBottom: r.produits?.length ? 10 : 0 }}>
-                                {r.telephone && <span>📞 {r.telephone}</span>}
-                                {r.adresse && <span>📍 {r.adresse}</span>}
-                                {r.date_ravitaillement && <span>📅 Dernier ravit. : {r.date_ravitaillement}</span>}
-                                {r.prochaine_date && <span>🔜 Prochain : {r.prochaine_date}</span>}
-                                {r.notes && <span style={{ color: '#636e72', fontStyle: 'italic' }}>💬 {r.notes}</span>}
-                              </div>
-                              {r.produits?.length > 0 && (
-                                <div style={{ marginTop: 6 }}>
-                                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9c27b0', textTransform: 'uppercase', marginBottom: 6 }}>
-                                    Produits achetés ({r.produits.length})
-                                  </div>
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                                    <thead>
-                                      <tr style={{ background: '#faf0ff' }}>
-                                        {['Produit', 'Quantité', 'Prix'].map(h => (
-                                          <th key={h} style={{ ...detTh, fontSize: 11, padding: '4px 8px' }}>{h}</th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {r.produits.map((p, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                          <td style={{ ...detTd, fontWeight: 600, padding: '4px 8px' }}>{p.nom || '—'}</td>
-                                          <td style={{ ...detTd, padding: '4px 8px' }}>{p.quantite ?? '—'}</td>
-                                          <td style={{ ...detTd, color: '#7b1fa2', fontWeight: 700, padding: '4px 8px' }}>
-                                            {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                    {clients.length === 0 ? (
+                      <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>
+                        Aucun client (grossiste) enregistré. Ajoutez-en dans "Mes clients".
+                      </div>
+                    ) : (
+                      clients.flatMap(c => (c.produits || []).map((p, i) => ({ c, p, i }))).length === 0 ? (
+                        <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>
+                          Aucun produit enregistré dans les fiches clients.
                         </div>
-                    }
+                      ) : (
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                          <thead><tr style={{ background: '#f8f9fa' }}>
+                            {['Grossiste', 'Produit', 'Qté', 'Prix actuel', 'Nouveau prix', ''].map(h => <th key={h} style={detTh}>{h}</th>)}
+                          </tr></thead>
+                          <tbody>
+                            {clients.flatMap(c =>
+                              (c.produits || []).map((p, i) => {
+                                const key = `${c.id}_${i}`;
+                                const editVal = stockEdits[key];
+                                const isSaved = stockSaved[key];
+                                const isSaving = stockSaving === key;
+                                const prodNom = p.nom || p.type || p.produit || `Produit ${i + 1}`;
+                                return (
+                                  <tr key={key} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                    <td style={{ ...detTd, fontWeight: 600 }}>{c.nom}</td>
+                                    <td style={detTd}>{prodNom}</td>
+                                    <td style={detTd}>{p.quantite || '—'}</td>
+                                    <td style={{ ...detTd, fontWeight: 700, color: '#e65100' }}>
+                                      {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
+                                    </td>
+                                    <td style={detTd}>
+                                      <input
+                                        type="number" min="0" step="any"
+                                        value={editVal !== undefined ? editVal : (p.prix || '')}
+                                        onChange={e => handlePrixChange(c.id, i, e.target.value)}
+                                        style={{ width: 110, padding: '5px 8px', borderRadius: 6, border: `1px solid ${editVal !== undefined && parseFloat(editVal) !== parseFloat(p.prix || 0) ? '#ff9800' : '#e0e0e0'}`, fontSize: 13, fontWeight: editVal !== undefined ? 700 : 400 }}
+                                      />
+                                    </td>
+                                    <td style={detTd}>
+                                      {isSaved ? (
+                                        <span style={{ color: '#4caf7d', fontWeight: 700, fontSize: 12 }}>✓ CEO notifié</span>
+                                      ) : editVal !== undefined && parseFloat(editVal) !== parseFloat(p.prix || 0) ? (
+                                        <button onClick={() => savePrix(c, i)} disabled={isSaving}
+                                          style={{ padding: '5px 10px', borderRadius: 6, background: '#ff9800', border: 'none', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
+                                          {isSaving ? '…' : '💾 Sauv.'}
+                                        </button>
+                                      ) : null}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      )
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -550,34 +556,66 @@ export default function CallCenterDashboard() {
               )}
 
               {/* CARD 2: 'produits'
-                  Grossiste → Souhaits des revendeurs (read-only, depuis backend)
-                  Revendeur → Produits disponibles (table) */}
+                  Grossiste → Revendeurs clients (fiches, lecture seule)
+                  Revendeur → Grossistes disponibles (fiches, lecture seule) */}
               {!detailLoading && selectedCard === 'produits' && (
                 isGrossiste ? (
                   <div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: 15, color: '#1e3a2f' }}>🛒 Souhaits des revendeurs</h3>
+                    <h3 style={{ margin: '0 0 6px', fontSize: 15, color: '#1e3a2f' }}>🏪 Revendeurs clients</h3>
                     <p style={{ margin: '0 0 16px', fontSize: 12, color: '#636e72' }}>
-                      Données saisies par les agents CC Revendeur — lecture seule.
+                      Liste des clients revendeurs enregistrés par les agents CC Revendeur — lecture seule.
                     </p>
-                    {souhaits.length === 0
-                      ? <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>Aucun souhait enregistré par les CC Revendeurs.</div>
-                      : <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                          <thead><tr style={{ background: '#f8f9fa' }}>
-                            {['Date', 'Agent CC', 'Client revendeur', 'Produit demandé', 'Quantité', 'Notes'].map(h => <th key={h} style={detTh}>{h}</th>)}
-                          </tr></thead>
-                          <tbody>
-                            {souhaits.map(s => (
-                              <tr key={s.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                                <td style={detTd}>{(s.created_at || '').slice(0, 10)}</td>
-                                <td style={{ ...detTd, color: '#636e72' }}>{s.cc_email?.split('@')[0] || '—'}</td>
-                                <td style={{ ...detTd, fontWeight: 600 }}>{s.client_nom || '—'}</td>
-                                <td style={detTd}>{s.produit || '—'}</td>
-                                <td style={detTd}>{s.quantite || '—'}</td>
-                                <td style={{ ...detTd, color: '#636e72' }}>{s.notes || '—'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                    {revendeurClients.length === 0
+                      ? <div style={{ color: '#bbb', textAlign: 'center', padding: 20, fontSize: 13 }}>Aucun revendeur enregistré par les CC Revendeurs.</div>
+                      : <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          {revendeurClients.map(r => (
+                            <div key={r.id} style={{
+                              border: '1.5px solid #f3e5f5', borderRadius: 12, padding: '14px 16px',
+                              background: '#fdf8ff',
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                                <div style={{ fontWeight: 700, fontSize: 15, color: '#1e3a2f' }}>{r.nom}</div>
+                                <div style={{ fontSize: 11, color: '#888' }}>
+                                  Agent : {r.agent_prenom || r.agent_nom || r.cc_email?.split('@')[0] || '—'}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', fontSize: 12, color: '#555', marginBottom: r.produits?.length ? 10 : 0 }}>
+                                {r.telephone && <span>📞 {r.telephone}</span>}
+                                {r.adresse && <span>📍 {r.adresse}</span>}
+                                {r.date_ravitaillement && <span>📅 Dernier ravit. : {r.date_ravitaillement}</span>}
+                                {r.prochaine_date && <span>🔜 Prochain : {r.prochaine_date}</span>}
+                                {r.notes && <span style={{ color: '#636e72', fontStyle: 'italic' }}>💬 {r.notes}</span>}
+                              </div>
+                              {r.produits?.length > 0 && (
+                                <div style={{ marginTop: 6 }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9c27b0', textTransform: 'uppercase', marginBottom: 6 }}>
+                                    Produits achetés ({r.produits.length})
+                                  </div>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                                    <thead>
+                                      <tr style={{ background: '#faf0ff' }}>
+                                        {['Produit', 'Quantité', 'Prix'].map(h => (
+                                          <th key={h} style={{ ...detTh, fontSize: 11, padding: '4px 8px' }}>{h}</th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {r.produits.map((p, idx) => (
+                                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                          <td style={{ ...detTd, fontWeight: 600, padding: '4px 8px' }}>{p.nom || '—'}</td>
+                                          <td style={{ ...detTd, padding: '4px 8px' }}>{p.quantite ?? '—'}</td>
+                                          <td style={{ ...detTd, color: '#7b1fa2', fontWeight: 700, padding: '4px 8px' }}>
+                                            {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                     }
                   </div>
                 ) : (
