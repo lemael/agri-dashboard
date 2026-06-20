@@ -95,7 +95,7 @@ export default function Layout() {
         </div>
       )}
 
-      <nav style={{ marginTop: 8, flex: 1, overflowY: 'auto', paddingBottom: '20rem' }}>
+      <nav style={{ marginTop: 8, overflowY: 'auto' }}>
         {links.map(l => (
           <NavLink
             key={l.to}
