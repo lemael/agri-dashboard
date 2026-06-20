@@ -1005,6 +1005,7 @@ export default function CallCenterDashboard() {
                             {p.quantite ?? '—'} restants
                           </span>
                         </div>
+                      </div>
                     ))}
                   </div>
                 </div>
