@@ -591,26 +591,21 @@ export default function CallCenterDashboard() {
                                   <div style={{ fontSize: 11, fontWeight: 700, color: '#9c27b0', textTransform: 'uppercase', marginBottom: 6 }}>
                                     Produits achetés ({r.produits.length})
                                   </div>
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                                    <thead>
-                                      <tr style={{ background: '#faf0ff' }}>
-                                        {['Produit', 'Quantité', 'Prix'].map(h => (
-                                          <th key={h} style={{ ...detTh, fontSize: 11, padding: '4px 8px' }}>{h}</th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {r.produits.map((p, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                          <td style={{ ...detTd, fontWeight: 600, padding: '4px 8px' }}>{p.nom || '—'}</td>
-                                          <td style={{ ...detTd, padding: '4px 8px' }}>{p.quantite ?? '—'}</td>
-                                          <td style={{ ...detTd, color: '#7b1fa2', fontWeight: 700, padding: '4px 8px' }}>
-                                            {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    {r.produits.map((p, idx) => (
+                                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#faf0ff', borderRadius: 8, padding: '6px 10px', border: '1px solid #e8d5f5' }}>
+                                        {p.image
+                                          ? <img src={p.image} alt={p.nom} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '1px solid #ce93d8', flexShrink: 0 }} />
+                                          : <div style={{ width: 40, height: 40, borderRadius: 6, background: '#e8d5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📦</div>
+                                        }
+                                        <div>
+                                          <div style={{ fontWeight: 700, fontSize: 12, color: '#1e3a2f' }}>{p.nom || '—'}</div>
+                                          <div style={{ fontSize: 11, color: '#636e72' }}>{p.quantite ?? '—'} u.</div>
+                                          <div style={{ fontSize: 11, color: '#7b1fa2', fontWeight: 700 }}>{p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -650,26 +645,21 @@ export default function CallCenterDashboard() {
                                   <div style={{ fontSize: 11, fontWeight: 700, color: '#4caf7d', textTransform: 'uppercase', marginBottom: 6 }}>
                                     Produits ({g.produits.length})
                                   </div>
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                                    <thead>
-                                      <tr style={{ background: '#f0faf4' }}>
-                                        {['Produit', 'Quantité restante', 'Prix'].map(h => (
-                                          <th key={h} style={{ ...detTh, fontSize: 11, padding: '4px 8px' }}>{h}</th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {g.produits.map((p, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                          <td style={{ ...detTd, fontWeight: 600, padding: '4px 8px' }}>{p.nom || '—'}</td>
-                                          <td style={{ ...detTd, padding: '4px 8px' }}>{p.quantite ?? '—'}</td>
-                                          <td style={{ ...detTd, color: '#2e7d32', fontWeight: 700, padding: '4px 8px' }}>
-                                            {p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    {g.produits.map((p, idx) => (
+                                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f0faf4', borderRadius: 8, padding: '6px 10px', border: '1px solid #c8e6c9' }}>
+                                        {p.image
+                                          ? <img src={p.image} alt={p.nom} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '1px solid #a5d6a7', flexShrink: 0 }} />
+                                          : <div style={{ width: 40, height: 40, borderRadius: 6, background: '#c8e6c9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>📦</div>
+                                        }
+                                        <div>
+                                          <div style={{ fontWeight: 700, fontSize: 12, color: '#1e3a2f' }}>{p.nom || '—'}</div>
+                                          <div style={{ fontSize: 11, color: '#636e72' }}>{p.quantite ?? '—'} u. restantes</div>
+                                          <div style={{ fontSize: 11, color: '#2e7d32', fontWeight: 700 }}>{p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -996,33 +986,27 @@ export default function CallCenterDashboard() {
               {selected.produits?.length > 0 && (
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#636e72', textTransform: 'uppercase', marginBottom: 8 }}>Produits vendus</div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ color: '#999', fontSize: 11 }}>
-                        <th style={th}>Produit</th>
-                        <th style={th}>Prix unitaire</th>
-                        <th style={th}>Quantité restante</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selected.produits.map((p, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                          <td style={td}>{p.nom}</td>
-                          <td style={td}>{p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}</td>
-                          <td style={td}>
-                            <span style={{
-                              padding: '2px 8px', borderRadius: 12, fontSize: 12,
-                              background: p.quantite <= 5 ? '#ffebee' : '#f0fff4',
-                              color: p.quantite <= 5 ? '#c0392b' : '#2d6a4f',
-                              fontWeight: 700,
-                            }}>
-                              {p.quantite ?? '—'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {selected.produits.map((p, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f8f9fa', borderRadius: 8, padding: '8px 12px', border: '1px solid #e8e8e8', minWidth: 160 }}>
+                        {p.image
+                          ? <img src={p.image} alt={p.nom} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd', flexShrink: 0 }} />
+                          : <div style={{ width: 44, height: 44, borderRadius: 6, background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>📦</div>
+                        }
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: '#1e3a2f' }}>{p.nom}</div>
+                          <div style={{ fontSize: 12, color: '#636e72' }}>{p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}</div>
+                          <span style={{
+                            padding: '1px 8px', borderRadius: 10, fontSize: 11,
+                            background: p.quantite <= 5 ? '#ffebee' : '#f0fff4',
+                            color: p.quantite <= 5 ? '#c0392b' : '#2d6a4f',
+                            fontWeight: 700,
+                          }}>
+                            {p.quantite ?? '—'} restants
+                          </span>
+                        </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -1189,14 +1173,16 @@ function ClientModal({ initial, onSave, onClose }) {
     notes: initial.notes || '',
   });
   const [saving, setSaving] = useState(false);
-  const [newProd, setNewProd] = useState({ nom: '', prix: '', quantite: '' });
+  const [newProd, setNewProd] = useState({ nom: '', prix: '', quantite: '', image: '' });
+  const newProdImgRef = React.useRef(null);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   function addProduit() {
     if (!newProd.nom.trim()) return;
     set('produits', [...form.produits, { ...newProd, quantite: Number(newProd.quantite) || 0, prix: Number(newProd.prix) || 0 }]);
-    setNewProd({ nom: '', prix: '', quantite: '' });
+    setNewProd({ nom: '', prix: '', quantite: '', image: '' });
+    if (newProdImgRef.current) newProdImgRef.current.value = '';
   }
 
   function removeProduit(i) {
@@ -1257,24 +1243,70 @@ function ClientModal({ initial, onSave, onClose }) {
               Produits vendus *
             </div>
             {form.produits.map((p, i) => (
-              <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ flex: 1, fontSize: 13 }}>{p.nom}</span>
-                <span style={{ fontSize: 13, color: '#636e72' }}>{p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}</span>
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, background: '#f8f9fa', borderRadius: 8, padding: '8px 10px' }}>
+                {p.image
+                  ? <img src={p.image} alt={p.nom} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, border: '1px solid #e0e0e0', flexShrink: 0 }} />
+                  : <div style={{ width: 44, height: 44, borderRadius: 6, background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>📦</div>
+                }
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nom}</div>
+                  <div style={{ fontSize: 12, color: '#636e72' }}>{p.prix ? `${Number(p.prix).toLocaleString('fr')} FCFA` : '—'}</div>
+                </div>
                 <input type="number" value={p.quantite} min="0"
                   onChange={e => updateProduitQty(i, e.target.value)}
-                  placeholder="Qté restante"
-                  style={{ width: 90, padding: '4px 6px', borderRadius: 6, border: '1px solid #e0e0e0', fontSize: 13 }} />
-                <button onClick={() => removeProduit(i)} style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 16 }}>×</button>
+                  placeholder="Qté"
+                  style={{ width: 70, padding: '4px 6px', borderRadius: 6, border: '1px solid #e0e0e0', fontSize: 13 }} />
+                <label style={{ cursor: 'pointer', fontSize: 18, title: 'Changer la photo' }} title="Changer la photo">
+                  📷
+                  <input type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={e => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = ev => {
+                        const copy = [...form.produits];
+                        copy[i] = { ...copy[i], image: ev.target.result };
+                        set('produits', copy);
+                      };
+                      reader.readAsDataURL(file);
+                    }} />
+                </label>
+                <button onClick={() => removeProduit(i)} style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 18 }}>×</button>
               </div>
             ))}
-            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-              <input value={newProd.nom} onChange={e => setNewProd(p => ({ ...p, nom: e.target.value }))}
-                placeholder="Nom du produit" style={inputSm} />
-              <input value={newProd.prix} onChange={e => setNewProd(p => ({ ...p, prix: e.target.value }))}
-                placeholder="Prix" type="number" style={{ ...inputSm, width: 80 }} />
-              <input value={newProd.quantite} onChange={e => setNewProd(p => ({ ...p, quantite: e.target.value }))}
-                placeholder="Qté" type="number" style={{ ...inputSm, width: 70 }} />
-              <button onClick={addProduit} style={{ padding: '6px 12px', borderRadius: 6, background: '#4caf7d', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700 }}>+</button>
+            {/* Ligne d'ajout nouveau produit */}
+            <div style={{ background: '#f0faf4', borderRadius: 8, padding: '10px 10px', marginTop: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#4caf7d', textTransform: 'uppercase', marginBottom: 8 }}>+ Nouveau produit</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                <input value={newProd.nom} onChange={e => setNewProd(p => ({ ...p, nom: e.target.value }))}
+                  placeholder="Nom du produit *" style={{ ...inputSm, flex: 1, minWidth: 100 }} />
+                <input value={newProd.prix} onChange={e => setNewProd(p => ({ ...p, prix: e.target.value }))}
+                  placeholder="Prix" type="number" style={{ ...inputSm, width: 80 }} />
+                <input value={newProd.quantite} onChange={e => setNewProd(p => ({ ...p, quantite: e.target.value }))}
+                  placeholder="Qté" type="number" style={{ ...inputSm, width: 65 }} />
+                <button onClick={addProduit} style={{ padding: '6px 14px', borderRadius: 6, background: '#4caf7d', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700 }}>+</button>
+              </div>
+              {/* Photo échantillon */}
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 12, color: '#4caf7d', fontWeight: 600, padding: '5px 10px', borderRadius: 6, border: '1.5px dashed #4caf7d', background: '#fff' }}>
+                  📷 Photo échantillon
+                  <input ref={newProdImgRef} type="file" accept="image/*" style={{ display: 'none' }}
+                    onChange={e => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = ev => setNewProd(p => ({ ...p, image: ev.target.result }));
+                      reader.readAsDataURL(file);
+                    }} />
+                </label>
+                {newProd.image && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <img src={newProd.image} alt="échantillon" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid #c8e6c9' }} />
+                    <button onClick={() => { setNewProd(p => ({ ...p, image: '' })); if (newProdImgRef.current) newProdImgRef.current.value = ''; }}
+                      style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
