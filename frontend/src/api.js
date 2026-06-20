@@ -119,6 +119,8 @@ export const api = USE_MOCK ? mockApi : {
   grossisteProduits:  ()       => get('/call-center/grossiste-produits'),
   // Liste complète des clients grossistes (pour CC Revendeur — section Produits disponibles)
   grossisteClients:   ()       => get('/call-center/grossiste-clients'),
+  // Liste complète des clients revendeurs (pour CC Grossiste — section Souhaits des clients)
+  revendeurClients:   ()       => get('/call-center/revendeur-clients'),
 
   // Listes pour Comptabilité
   ccAllClients: (groupe) => get(`/call-center/all-clients${groupe != null ? '?groupe=' + groupe : ''}`),
